@@ -1,85 +1,152 @@
 "use strict";
 
-function P2P(userID, options) {
-	var me = this;
+function P2P(userID, onError, options) {
+	var connections = new Map();
+	var peer, sessionID;
+
+	const me = this;
 
 	const MsgType = {
-		'DATA': 0,
+		'DATA': 1,
+		'PEER_LIST': 2,
 	}
 
-	class Message {
-		constructor(type, data) {
-			this.typeCode = type;
-			this.data = data;
-		}
+	function sessionEntered(id) {
+		sessionID = id;
+		var event = new jQuery.Event('connected', {
+			sessionID: id
+		});
+		$(me).triggerHandler(event);
+	}
 
-		get type() {
-			return MsgType[this.typeCode];
+	function connectTo(peerName) {
+		var connection = peer.connect(peerName, {
+			label: userID,
+			reliable: true
+		});
+		connection.on('data', dataReceived);
+		connection.on('error', function (error) {
+			if (error.type == 'peer-unavailable') {
+				// Do nothing.
+			} else if (onError) {
+				onError(error);
+			}
+		});
+		connection.on('open', function () {
+			connections.set(peerName, connection);
+		});
+
+	}
+
+	function getUserID(connection) {
+		var label = connection.label;
+		if (label === userID) {
+			return connection.peer;
+		} else {
+			return label;
 		}
 	}
 
-	var connections = new Map();
-	var peer;
+	function dataReceived(message) {
+		if (message.type === MsgType.PEER_LIST) {
+			if (this.peer === sessionID) {
+				for (let peerName of message.data) {
+					connectTo(peerName);
+				}
+			}
+		} else if (message.type === MsgType.DATA) {
+			var event = new jQuery.Event('message', {
+				sessionID: sessionID,
+				userID: getUserID(this),
+				message: message.data
+			});
+			$(me).triggerHandler(event);			
+		}
+	}
 
-	this.connect = function(sessionID, onError) {
+	function connectionAccepted(connection) {
+		connection.on('data', dataReceived);
+		connection.on('error', onError);
+		connections.set(connection.peer, connection);
 
+		var event = new jQuery.Event('userjoined', {
+			sessionID: sessionID,
+			userID: connection.label
+		});
+		$(me).triggerHandler(event);
+	}
+
+	function createSession () {
+		peer = new Peer(sessionID, options);
+		peer.on('error', function(error) {
+			if (error.type == 'unavailable-id') {
+				me.connect(sessionID);
+			} else if (onError) {
+				onError(error);
+			}
+		});
+
+		peer.on('open', sessionEntered);
+
+		peer.on('connection', function (connection) {
+			connection.on('open', function () {
+				if (connections.size > 0) {
+					connection.send({
+						type: MsgType.PEER_LIST,
+						data: Array.from(connections.keys())
+					});
+				}
+				connectionAccepted(connection);
+			});
+		});
+	}
+
+	function send(message) {
+		for (let connection of connections.values()) {
+			connection.send(message);
+		}
+	};
+
+	this.send = function(data) {
+		send({
+			type: MsgType.DATA,
+			data: data
+		});
+	}
+
+	this.connect = function(sessionIDToJoin) {
 		var connection;
+		sessionID = sessionIDToJoin;
 
-		function errorHandler(error) {
-			if (error.type === 'peer-unavailable') {
-				if (connection.peer == sessionID) {
+		if (sessionID) {
+
+			peer = new Peer(options);
+			peer.on('error', function (error) {
+				if (error.type == 'peer-unavailable') {
 					createSession(sessionID, onError);
 				} else if (onError) {
 					onError(error);
 				}
-			} else if (error.type == 'unavailable-id') {
-				me.connect(sessionID, onError)
-			} else if (onError) {
-				onError(error);
-			}
-		}
-
-		function connectedHandler(id) {
-			sessionID = id;
-			var event = new jQuery.Event('connected', {
-				sessionID: id
 			});
-			$(me).triggerHandler(event);
-		}
-
-
-		function createSession () {
-			peer = new Peer(sessionID, options);
-			peer.on('error', errorHandler);
-			peer.on('open', connectedHandler);
 
 			peer.on('connection', function (connection) {
-				var peerName = connection.peer;
-				connections.set(peerName, connection);
-
-				var event = new jQuery.Event('user-joined', {
-					sessionID: sessionID,
-					userID: connection.label
+				connection.on('open', function () {
+					connectionAccepted(connection);
 				});
-				$(me).triggerHandler(event);
 			});
 
-		}
-
-		if (sessionID) {
-
-			if (peer === undefined) {
-				peer = new Peer(options);
-				peer.on('error', errorHandler);
-			}
 			connection = peer.connect(sessionID, {
 				label: userID,
 				reliable: true
 			});
+
+			connection.on('data', dataReceived);
+			connection.on('error', onError);
+
 			connection.on('open', function () {
-				connectedHandler(this.peer);
+				connections.set(sessionID, connection);
+				sessionEntered(sessionID);
 			});
-			connections.set(sessionID, connection);
 
 		} else {
 
@@ -88,14 +155,6 @@ function P2P(userID, options) {
 		}
 
 	}; // end of connect method.
-
-	function send(message) {
-
-	};
-
-	this.send = function(data) {
-		send(new Message(MsgType.DATA, data));
-	}
 
 	this.on = function(eventType, handler) {
 		$(this).on(eventType, handler);
