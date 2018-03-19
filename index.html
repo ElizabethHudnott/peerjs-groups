@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Peer-to-Peer Communication Demo</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	</head>
+	<body>
+		<div id="connection-setup">
+			<label>
+				Chat Room Name:
+				<input type="text" id="session-id"/>
+			</label>
+			<label>
+				UserID:
+				<input type="text" id="user-id"/>
+			</label>
+			<button type="button" id="connect-btn">Connect</button>
+		</div>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
+		<script src="js/peer-comms.js"></script>
+		<script src="js/chat.js"></script>
+	</body>
+</html>
