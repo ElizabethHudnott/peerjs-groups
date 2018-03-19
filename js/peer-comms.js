@@ -18,7 +18,6 @@ function P2P(userID, options) {
 		}
 	}
 
-	var connected = false;
 	var connections = new Map();
 	var peer;
 
