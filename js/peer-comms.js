@@ -58,6 +58,12 @@ function P2P(userID, onError, options) {
 		}
 	}
 
+	function send(message) {
+		for (let connection of connections.values()) {
+			connection.send(message);
+		}
+	};
+
 	function dataReceived(message) {
 		if (message.type === MsgType.PEER_LIST) {
 			if (this.peer === sessionID) {
@@ -112,21 +118,8 @@ function P2P(userID, onError, options) {
 		});
 	}
 
-	function send(message) {
-		for (let connection of connections.values()) {
-			connection.send(message);
-		}
-	};
-
-	this.send = function(data) {
-		send({
-			type: MsgType.DATA,
-			data: data
-		});
-	}
-
 	this.connect = function(sessionIDToJoin) {
-		var connection;
+		var firstConnection;
 		sessionID = sessionIDToJoin;
 
 		if (sessionID) {
@@ -141,21 +134,21 @@ function P2P(userID, onError, options) {
 			});
 
 			peer.on('connection', function (connection) {
-				connection.on('open', function () {
+				firstConnection.on('open', function () {
 					connectionAccepted(connection);
 				});
 			});
 
-			connection = peer.connect(sessionID, {
+			firstConnection = peer.connect(sessionID, {
 				label: userID,
 				reliable: true
 			});
 
-			connection.on('data', dataReceived);
-			connection.on('error', onError);
+			firstConnection.on('data', dataReceived);
+			firstConnection.on('error', onError);
 
-			connection.on('open', function () {
-				connections.set(sessionID, connection);
+			firstConnection.on('open', function () {
+				connections.set(sessionID, firstConnection);
 				sessionEntered(sessionID);
 			});
 
@@ -166,6 +159,13 @@ function P2P(userID, onError, options) {
 		}
 
 	}; // end of connect method.
+
+	this.send = function(data) {
+		send({
+			type: MsgType.DATA,
+			data: data
+		});
+	}
 
 	this.on = function(eventType, handler) {
 		$(this).on(eventType, handler);
