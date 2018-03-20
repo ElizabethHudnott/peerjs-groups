@@ -2,7 +2,6 @@
 /* TODO
  *	* Connections between peers timing out?
  *  * Fix getUserID
- *  * Permit multiple sessions using the same P2P object.
  *	* Add method to disconnect from a session.
  *	* Handle calling connect twice.
  *	* When to disconnect (or destroy?) the peer.
@@ -33,6 +32,7 @@ function P2P(userID, onError, options) {
 	function connectTo(peerName) {
 		var connection = peer.connect(peerName, {
 			label: userID,
+			metadata: {sessionID: sessionID},
 			reliable: true
 		});
 		connection.on('data', dataReceived);
@@ -124,20 +124,26 @@ function P2P(userID, onError, options) {
 
 		if (sessionID) {
 
-			peer = new Peer(options);
-			peer.on('error', function (error) {
-				if (error.type == 'peer-unavailable') {
-					createSession(sessionID, onError);
-				} else if (onError) {
-					onError(error);
-				}
-			});
-
-			peer.on('connection', function (connection) {
-				firstConnection.on('open', function () {
-					connectionAccepted(connection);
+			if (peer === undefined || peer.disconnected) {
+				peer = new Peer(options);
+				peer.on('error', function (error) {
+					if (error.type == 'peer-unavailable') {
+						createSession(sessionID, onError);
+					} else if (onError) {
+						onError(error);
+					}
 				});
-			});
+
+				peer.on('connection', function (connection) {
+					connection.on('open', function () {
+						if (connection.metadata.sessionID === sessionID) {
+							connectionAccepted(connection);
+						} else {
+							connection.close();
+						}
+					});
+				});
+			}
 
 			firstConnection = peer.connect(sessionID, {
 				label: userID,
