@@ -1,4 +1,15 @@
 "use strict";
+/* TODO
+ *	* Connections between peers timing out?
+ *  * Fix getUserID
+ *  * Permit multiple sessions using the same P2P object.
+ *	* Add method to disconnect from a session.
+ *	* Handle calling connect twice.
+ *	* When to disconnect (or destroy?) the peer.
+ *	* Handle peer getting disconnected from peer server.
+ *  * Handle when the peer named after the session goes down.
+ *  * Ask for permission before accepting new peers. 
+ */
 
 function P2P(userID, onError, options) {
 	var connections = new Map();
