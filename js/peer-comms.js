@@ -1,17 +1,20 @@
 "use strict";
 /* TODO
+ *	* Document code.
  *	* Connections between peers timing out?
- *  * Fix getUserID
  *	* Add method to disconnect from a session.
  *	* Handle calling connect twice.
  *	* When to disconnect (or destroy?) the peer.
  *	* Handle peer getting disconnected from peer server.
  *  * Handle when the peer named after the session goes down.
- *  * Ask for permission before accepting new peers. 
+ *  * Ask for permission before accepting new peers.
+ *	* Verify users' identities somehow (PGP signature?) 
+ *  * Anonymize connection labels.
  */
 
 function P2P(userID, onError, options) {
 	var connections = new Map();
+	var peersToUsers = new Map();
 	var peer, sessionID;
 
 	const me = this;
@@ -19,6 +22,7 @@ function P2P(userID, onError, options) {
 	const MsgType = {
 		'DATA': 1,
 		'PEER_LIST': 2,
+		'IDENTIFY': 3,
 	}
 
 	function sessionEntered(id) {
@@ -52,7 +56,7 @@ function P2P(userID, onError, options) {
 	function getUserID(connection) {
 		var label = connection.label;
 		if (label === userID) {
-			return connection.peer;
+			return peersToUsers.get(connection.peer);
 		} else {
 			return label;
 		}
@@ -64,14 +68,26 @@ function P2P(userID, onError, options) {
 		}
 	};
 
+	function sendIdentity(connection) {
+		connection.send({
+			type: MsgType.IDENTIFY,
+			data: userID
+		})
+	}
+
 	function dataReceived(message) {
-		if (message.type === MsgType.PEER_LIST) {
+		switch (message.type) {
+		case MsgType.PEER_LIST:
 			if (this.peer === sessionID) {
 				for (let peerName of message.data) {
 					connectTo(peerName);
 				}
 			}
-		} else if (message.type === MsgType.DATA) {
+			break;
+		case MsgType.IDENTIFY:
+			peersToUsers.set(this.peer, message.data);
+			break;
+		default:
 			var event = new jQuery.Event('message', {
 				sessionID: sessionID,
 				userID: getUserID(this),
@@ -85,6 +101,7 @@ function P2P(userID, onError, options) {
 		connection.on('data', dataReceived);
 		connection.on('error', onError);
 		connections.set(connection.peer, connection);
+		sendIdentity(connection);
 
 		var event = new jQuery.Event('userjoined', {
 			sessionID: sessionID,
