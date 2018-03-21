@@ -1,0 +1,18 @@
+body {
+	font-family: sans-serif;
+}
+
+.chat {
+	margin-bottom: 0.4em;
+	line-height: 1.4;
+}
+
+.chat pre {
+	display: inline;
+	font-family: sans-serif;
+	white-space: pre-line;
+}
+
+.system-message {
+	font-style: italic;
+}

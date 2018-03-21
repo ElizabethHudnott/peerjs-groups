@@ -1,5 +1,6 @@
 "use strict";
 /* TODO
+ *	* Mask sessionID with one time password.
  *	* Document code.
  *	* Connections between peers timing out?
  *	* Add method to disconnect from a session.
@@ -8,7 +9,7 @@
  *	* Handle peer getting disconnected from peer server.
  *  * Handle when the peer named after the session goes down.
  *  * Ask for permission before accepting new peers.
- *	* Verify users' identities somehow (PGP signature?) 
+ *	* Verify users' identities somehow. 
  *  * Anonymize connection labels.
  */
 
@@ -21,14 +22,16 @@ function P2P(userID, onError, options) {
 
 	const MsgType = {
 		'DATA': 1,
-		'PEER_LIST': 2,
-		'IDENTIFY': 3,
+		'IDENTIFY': 2,
+		'PEER_LIST': 3,
+		'PRIVATE_MSG': 4,
 	}
 
 	function sessionEntered(id) {
 		sessionID = id;
 		var event = new jQuery.Event('connected', {
-			sessionID: id
+			sessionID: id,
+			userID: userID
 		});
 		$(me).triggerHandler(event);
 	}
@@ -91,6 +94,7 @@ function P2P(userID, onError, options) {
 			var event = new jQuery.Event('message', {
 				sessionID: sessionID,
 				userID: getUserID(this),
+				isPrivate: message.type === MsgType.PRIVATE_MSG,
 				message: message.data
 			});
 			$(me).triggerHandler(event);			
@@ -98,14 +102,17 @@ function P2P(userID, onError, options) {
 	}
 
 	function connectionAccepted(connection) {
+		var newUserID = connection.label;
+		peersToUsers.set(connection.peer, connection.label);
+		sendIdentity(connection);
+
 		connection.on('data', dataReceived);
 		connection.on('error', onError);
 		connections.set(connection.peer, connection);
-		sendIdentity(connection);
 
 		var event = new jQuery.Event('userjoined', {
 			sessionID: sessionID,
-			userID: connection.label
+			userID: newUserID
 		});
 		$(me).triggerHandler(event);
 	}
@@ -181,13 +188,32 @@ function P2P(userID, onError, options) {
 
 		}
 
-	}; // end of connect method.
+	} // end of connect method.
 
 	this.send = function(data) {
 		send({
 			type: MsgType.DATA,
 			data: data
 		});
+	}
+
+	this.sendPrivate = function(destUser, data) {
+		var destPeerName;
+		for (let [peerName, userID] of peersToUsers.entries()) {
+			if (userID === destUser) {
+				connections.get(peerName).send({
+					type: MsgType.PRIVATE_MSG,
+					data: data
+				})
+				return;
+			}
+		}
+		var error = new Error(`No such user ${destUser}`);
+		if (onError) {
+			onError(error);
+		} else {
+			throw error;
+		}
 	}
 
 	this.on = function(eventType, handler) {

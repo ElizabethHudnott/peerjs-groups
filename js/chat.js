@@ -27,25 +27,36 @@ $('#connect-btn').on('click', function (event) {
 
 	p2p.on('connected', function (event) {
 		$('#chat').append(`
-			<p class="system-message">
+			<div class="chat system-message">
 				Connected to ${event.sessionID}.
-			</p>
+			</div>
 		`);
 	});
 
 	p2p.on('userjoined', function (event) {
 		$('#chat').append(`
-			<p class="system-message">
+			<div class="chat system-message">
 				<span class="user-id">${event.userID}</span>
 				has joined the conversation.
-			</p>
+			</div>
 		`);
 	});
 
 	p2p.on('message', function (event) {
 		var text = escapeHTML(event.message);
+		var cssClass, annotation;
+		if (event.isPrivate) {
+			cssClass = 'private-msg';
+			annotation = ' (Private)';
+		} else {
+			cssClass = '';
+			annotation = '';
+		}
 		$('#chat').append(`
-			<pre><span class="user-id">${event.userID}:</span>${text}</pre>
+			<div class="chat ${cssClass}">
+				<span class="user-id">${event.userID}${annotation}:</span>
+				<pre>${text}</pre>
+			</div>
 		`);
 	})
 });
@@ -56,7 +67,10 @@ messageBox.on('keyup', function (event) {
 		textToSend = messageBox.val();
 		escapedText = escapeHTML(textToSend);
 		$("#chat").append(`
-			<pre><span class="user-id">${userID}:</span>${escapedText}</pre>
+			<div class="chat">
+				<span class="user-id">${userID}:</span>
+				<pre>${escapedText}</pre>
+			</div>
 		`);
 		p2p.send(textToSend);
 		messageBox.val('');
