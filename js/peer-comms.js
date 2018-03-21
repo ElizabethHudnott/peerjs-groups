@@ -1,14 +1,17 @@
 "use strict";
 /* TODO
- *	* Mask sessionID with one time password.
+ *  * Ask for permission before accepting new peers.
+ *	* Defer connected event until all connections to all peers in the group have been attempted.
+ *	* Add method to get the userIDs present in the session.
  *	* Document code.
  *	* Connections between peers timing out?
  *	* Add method to disconnect from a session.
+ *	* Add method to disconnect from a particular peer. (Decide individually? Vote?)
  *	* Handle calling connect twice.
  *	* When to disconnect (or destroy?) the peer.
  *	* Handle peer getting disconnected from peer server.
  *  * Handle when the peer named after the session goes down.
- *  * Ask for permission before accepting new peers.
+ *	* Mask sessionID with one time password.
  *	* Verify users' identities somehow. 
  *  * Anonymize connection labels.
  */
@@ -34,26 +37,6 @@ function P2P(userID, onError, options) {
 			userID: userID
 		});
 		$(me).triggerHandler(event);
-	}
-
-	function connectTo(peerName) {
-		var connection = peer.connect(peerName, {
-			label: userID,
-			metadata: {sessionID: sessionID},
-			reliable: true
-		});
-		connection.on('data', dataReceived);
-		connection.on('error', function (error) {
-			if (error.type == 'peer-unavailable') {
-				// Do nothing.
-			} else if (onError) {
-				onError(error);
-			}
-		});
-		connection.on('open', function () {
-			connections.set(peerName, connection);
-		});
-
 	}
 
 	function getUserID(connection) {
@@ -101,6 +84,48 @@ function P2P(userID, onError, options) {
 		}
 	}
 
+	function connectionClosed() {
+		var label = this.label;
+		var peerName, disconnectedUser;
+		if (label === userID) {
+			peerName = this.peer;
+			disconnectedUser = peersToUsers.get(peerName);
+		} else {
+			peerName = label;
+			disconnectedUser = label;
+		}
+		peersToUsers.delete(peerName);
+		connections.delete(peerName);
+
+		var event = new jQuery.Event('userleft', {
+			sessionID: sessionID,
+			userID: disconnectedUser
+		});
+		$(me).triggerHandler(event);
+	}
+
+	function connectTo(peerName) {
+		var connection = peer.connect(peerName, {
+			label: userID,
+			metadata: {sessionID: sessionID},
+			reliable: true
+		});
+		connection.on('data', dataReceived);
+		connection.on('error', function (error) {
+			if (error.type == 'peer-unavailable') {
+				// Do nothing.
+			} else if (onError) {
+				onError(error);
+			} else {
+				throw error;
+			}
+		});
+		connection.on('open', function () {
+			connections.set(peerName, connection);
+		});
+		connection.on('close', connectionClosed);
+	}
+
 	function connectionAccepted(connection) {
 		var newUserID = connection.label;
 		peersToUsers.set(connection.peer, connection.label);
@@ -108,6 +133,7 @@ function P2P(userID, onError, options) {
 
 		connection.on('data', dataReceived);
 		connection.on('error', onError);
+		connection.on('close', connectionClosed);
 		connections.set(connection.peer, connection);
 
 		var event = new jQuery.Event('userjoined', {
@@ -124,6 +150,8 @@ function P2P(userID, onError, options) {
 				me.connect(sessionID);
 			} else if (onError) {
 				onError(error);
+			} else {
+				throw error;
 			}
 		});
 
@@ -131,12 +159,10 @@ function P2P(userID, onError, options) {
 
 		peer.on('connection', function (connection) {
 			connection.on('open', function () {
-				if (connections.size > 0) {
-					connection.send({
-						type: MsgType.PEER_LIST,
-						data: Array.from(connections.keys())
-					});
-				}
+				connection.send({
+					type: MsgType.PEER_LIST,
+					data: Array.from(connections.keys())
+				});
 				connectionAccepted(connection);
 			});
 		});
@@ -155,6 +181,8 @@ function P2P(userID, onError, options) {
 						createSession(sessionID, onError);
 					} else if (onError) {
 						onError(error);
+					} else {
+						throw error;
 					}
 				});
 

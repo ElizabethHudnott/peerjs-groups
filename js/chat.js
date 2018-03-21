@@ -42,6 +42,15 @@ $('#connect-btn').on('click', function (event) {
 		`);
 	});
 
+	p2p.on('userleft', function (event) {
+		$('#chat').append(`
+			<div class="chat system-message">
+				<span class="user-id">${event.userID}</span>
+				has left the conversation.
+			</div>
+		`);
+	});
+
 	p2p.on('message', function (event) {
 		var text = escapeHTML(event.message);
 		var cssClass, annotation;
