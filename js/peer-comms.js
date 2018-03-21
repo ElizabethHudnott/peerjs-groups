@@ -1,10 +1,10 @@
 "use strict";
 /* TODO
+ *	* Disconnect peers who send malformed messages.
  *  * Ask for permission before accepting new peers.
  *	* Defer connected event until all connections to all peers in the group have been attempted.
  *	* Add method to get the userIDs present in the session.
  *	* Document code.
- *	* Connections between peers timing out?
  *	* Add method to disconnect from a session.
  *	* Add method to disconnect from a particular peer. (Decide individually? Vote?)
  *	* Handle calling connect twice.

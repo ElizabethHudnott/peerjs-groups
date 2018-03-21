@@ -70,18 +70,28 @@ $('#connect-btn').on('click', function (event) {
 	})
 });
 
+messageBox.on('input', function (event) {
+    $(this).height(0).height(this.scrollHeight);
+});
+
 messageBox.on('keyup', function (event) {
 	var textToSend, escapedText;
-	if (event.keyCode === 13) {
-		textToSend = messageBox.val();
-		escapedText = escapeHTML(textToSend);
-		$("#chat").append(`
-			<div class="chat">
-				<span class="user-id">${userID}:</span>
-				<pre>${escapedText}</pre>
-			</div>
-		`);
-		p2p.send(textToSend);
-		messageBox.val('');
+	if (event.key === 'Enter') {
+		if (event.ctrlKey) {
+			messageBox.val(messageBox.val() + '\n');
+			messageBox.height(0).height(this.scrollHeight);
+		} else {
+			textToSend = messageBox.val();
+			escapedText = escapeHTML(textToSend);
+			messageBox.css('height', '');
+			$("#chat").append(`
+				<div class="chat">
+					<span class="user-id">${userID}:</span>
+					<pre>${escapedText}</pre>
+				</div>
+			`);
+			messageBox.val('');
+			p2p.send(textToSend);
+		}
 	}
 });

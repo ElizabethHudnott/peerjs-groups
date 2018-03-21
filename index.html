@@ -1,27 +1,53 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Peer-to-Peer Communication Demo</title>
+		<title>Peer2Peer Chat</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+		<link rel="stylesheet" href="css/site.css"/>
 		<link rel="stylesheet" href="css/chat.css"/>
 	</head>
 	<body>
-		<div id="connection-setup">
-			<label>
-				Chat Room Name:
-				<input type="text" id="session-id"/>
-			</label>
-			<label>
-				UserID:
-				<input type="text" id="user-id"/>
-			</label>
-			<button type="button" id="connect-btn">Connect</button>
+		<div class="app-container d-flex flex-column">
+			<div class="jumbotron">
+				<h1 class="display-3 mb-4">
+					<span class="raised-title">Peer</span>2<sub>Peer</sub>
+					<span class="raised-title">Chat</span>
+				</h1>
+				<p class="lead">
+					A demonstration of browser to browser communication using Peer.js.
+				</p>
+			</div>
+
+			<table id="connection-setup" class="mx-auto">
+				<tr>
+					<th>
+						<label for="session-id">Chat Room Name:</label>
+					</th>
+					<td>
+						<input type="text" id="session-id"/>
+					</td>
+				</tr>
+				<tr>
+					<th>
+						<label for="user-id">User ID:</label>
+					</th>
+					<td>
+						<input type="text" id="user-id"/>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+					<button type="button" id="connect-btn" class="btn btn-primary btn-block">Connect</button>
+				</tr>
+			</table>
+			<div id="chat" class="mt-3"></div>
+			<textarea id="message" rows="1" class="w-100" placeholder="Type a message and press enter."></textarea>
 		</div>
-		<div id="chat">
-		</div>
-		<input type="text" id="message" placeholder="Type a message and press enter."/>
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
 		<script src="js/peer-comms.js"></script>
 		<script src="js/chat.js"></script>
