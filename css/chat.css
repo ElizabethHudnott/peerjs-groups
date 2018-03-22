@@ -1,3 +1,7 @@
+#container {
+	height: 100vh;
+}
+
 .raised-title {
 	vertical-align: 0.5ex;
 	margin-right: -0.05em;
@@ -20,6 +24,10 @@
 
 .system-message {
 	font-style: italic;
+}
+
+.user-id {
+	font-weight: bold;
 }
 
 #message {

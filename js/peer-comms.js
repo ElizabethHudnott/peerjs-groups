@@ -128,13 +128,13 @@ function P2P(userID, onError, options) {
 
 	function connectionAccepted(connection) {
 		var newUserID = connection.label;
+		connections.set(connection.peer, connection);
 		peersToUsers.set(connection.peer, connection.label);
 		sendIdentity(connection);
 
 		connection.on('data', dataReceived);
 		connection.on('error', onError);
 		connection.on('close', connectionClosed);
-		connections.set(connection.peer, connection);
 
 		var event = new jQuery.Event('userjoined', {
 			sessionID: sessionID,

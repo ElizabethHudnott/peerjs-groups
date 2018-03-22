@@ -1,15 +1,19 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:600i');
 
-.app-container {
-	height: 100vh;
-	margin: 0 auto;
-	max-width: 800px;
-}
-
 .display-3 {
 	font-family: "Open Sans", sans-serif;
 }
 
+.jumbotron {
+	padding-top: 2rem;
+	padding-bottom: 2rem;
+}
+
 .lead {
 	margin-left: 1.5rem;
+}
+
+.app-container {
+	margin: 0 auto;
+	max-width: 800px;
 }
