@@ -1,8 +1,9 @@
 "use strict";
 /* TODO
+ *	* Detect connection refused.
+ *	* Permit users 
+ *	* Check user IDs are unique.
  *	* Disconnect peers who send malformed messages.
- *  * Ask for permission before accepting new peers.
- *	* Defer connected event until all connections to all peers in the group have been attempted.
  *	* Add method to get the userIDs present in the session.
  *	* Document code.
  *	* Add method to disconnect from a session.
@@ -18,7 +19,9 @@
 
 function P2P(userID, onError, options) {
 	var connections = new Map();
+	var pending = new Map();
 	var peersToUsers = new Map();
+	var usersToPeers = new Map();
 	var peer, sessionID;
 
 	const me = this;
@@ -68,10 +71,12 @@ function P2P(userID, onError, options) {
 				for (let peerName of message.data) {
 					connectTo(peerName);
 				}
+				sessionEntered(sessionID);
 			}
 			break;
 		case MsgType.IDENTIFY:
 			peersToUsers.set(this.peer, message.data);
+			usersToPeers.set(message.data, this.peer);
 			break;
 		default:
 			var event = new jQuery.Event('message', {
@@ -94,8 +99,9 @@ function P2P(userID, onError, options) {
 			peerName = label;
 			disconnectedUser = label;
 		}
-		peersToUsers.delete(peerName);
 		connections.delete(peerName);
+		peersToUsers.delete(peerName);
+		usersToPeers.delete(disconnectedUser);
 
 		var event = new jQuery.Event('userleft', {
 			sessionID: sessionID,
@@ -113,7 +119,8 @@ function P2P(userID, onError, options) {
 		connection.on('data', dataReceived);
 		connection.on('error', function (error) {
 			if (error.type == 'peer-unavailable') {
-				// Do nothing.
+				/*Do nothing. Assume peer has lost connection to the broker and will
+				  reconnect to it and then us. */
 			} else if (onError) {
 				onError(error);
 			} else {
@@ -124,23 +131,6 @@ function P2P(userID, onError, options) {
 			connections.set(peerName, connection);
 		});
 		connection.on('close', connectionClosed);
-	}
-
-	function connectionAccepted(connection) {
-		var newUserID = connection.label;
-		connections.set(connection.peer, connection);
-		peersToUsers.set(connection.peer, connection.label);
-		sendIdentity(connection);
-
-		connection.on('data', dataReceived);
-		connection.on('error', onError);
-		connection.on('close', connectionClosed);
-
-		var event = new jQuery.Event('userjoined', {
-			sessionID: sessionID,
-			userID: newUserID
-		});
-		$(me).triggerHandler(event);
 	}
 
 	function createSession () {
@@ -159,11 +149,30 @@ function P2P(userID, onError, options) {
 
 		peer.on('connection', function (connection) {
 			connection.on('open', function () {
-				connection.send({
-					type: MsgType.PEER_LIST,
-					data: Array.from(connections.keys())
+				var peerName = connection.peer;
+				var newUserID = connection.label;
+				var alreadyPending = peersToUsers.get(peerName);
+				if (alreadyPending !== undefined) {
+					usersToPeers.delete(alreadyPending);
+				}
+				pending.set(peerName, connection);
+				peersToUsers.set(peerName, newUserID);
+				usersToPeers.set(newUserID, peerName);
+
+				connection.on('error', onError);
+				connection.on('close', function () {
+					pending.delete(this.peer);
+					peersToUsers.delete(this.label);
+					usersToPeers.delete(this.peer);
 				});
-				connectionAccepted(connection);
+
+				if (alreadyPending === undefined) {
+					var event = new jQuery.Event('joinrequest', {
+						sessionID: sessionID,
+						userID: connection.label
+					});
+					$(me).triggerHandler(event);
+				}
 			});
 		});
 	}
@@ -174,7 +183,7 @@ function P2P(userID, onError, options) {
 
 		if (sessionID) {
 
-			if (peer === undefined || peer.disconnected) {
+			if (peer === undefined || peer.disconnected || peer.id === sessionID) {
 				peer = new Peer(options);
 				peer.on('error', function (error) {
 					if (error.type == 'peer-unavailable') {
@@ -189,7 +198,22 @@ function P2P(userID, onError, options) {
 				peer.on('connection', function (connection) {
 					connection.on('open', function () {
 						if (connection.metadata.sessionID === sessionID) {
-							connectionAccepted(connection);
+							var peerName = connection.peer;
+							var newUserID = connection.label;
+							connections.set(peerName, connection);
+							peersToUsers.set(peerName, newUserID);
+							usersToPeers.set(newUserID, peerName);
+							sendIdentity(connection);
+
+							connection.on('data', dataReceived);
+							connection.on('error', onError);
+							connection.on('close', connectionClosed);
+
+							var event = new jQuery.Event('userjoined', {
+								sessionID: sessionID,
+								userID: newUserID
+							});
+							$(me).triggerHandler(event);
 						} else {
 							connection.close();
 						}
@@ -204,10 +228,10 @@ function P2P(userID, onError, options) {
 
 			firstConnection.on('data', dataReceived);
 			firstConnection.on('error', onError);
+			firstConnection.on('close', connectionClosed);
 
 			firstConnection.on('open', function () {
 				connections.set(sessionID, firstConnection);
-				sessionEntered(sessionID);
 			});
 
 		} else {
@@ -218,6 +242,34 @@ function P2P(userID, onError, options) {
 
 	} // end of connect method.
 
+	this.acceptUser = function(newUserID) {
+		var peerName = usersToPeers.get(newUserID);
+		var connection = pending.get(peerName);
+		pending.delete(peerName);
+
+		connections.set(peerName, connection);
+		connection.on('data', dataReceived);
+		connection.on('close', connectionClosed);
+
+		connection.send({
+			type: MsgType.PEER_LIST,
+			data: Array.from(connections.keys())
+		});
+		sendIdentity(connection);
+
+		var event = new jQuery.Event('userjoined', {
+			sessionID: sessionID,
+			userID: newUserID
+		});
+		$(me).triggerHandler(event);
+	}
+
+	this.rejectUser = function(newUserID) {
+		var peerName = usersToPeers.get(newUserID);
+		var connection = pending.get(peerName);
+		connection.close();
+	}
+
 	this.send = function(data) {
 		send({
 			type: MsgType.DATA,
@@ -226,21 +278,23 @@ function P2P(userID, onError, options) {
 	}
 
 	this.sendPrivate = function(destUser, data) {
-		var destPeerName;
-		for (let [peerName, userID] of peersToUsers.entries()) {
-			if (userID === destUser) {
-				connections.get(peerName).send({
-					type: MsgType.PRIVATE_MSG,
-					data: data
-				})
-				return;
+		var destPeerName = usersToPeers.get(destUser);
+		if (destPeerName === undefined) {
+			var error = new Error(`No such user ${destUser}`);
+			if (onError) {
+				onError(error);
+			} else {
+				throw error;
 			}
-		}
-		var error = new Error(`No such user ${destUser}`);
-		if (onError) {
-			onError(error);
 		} else {
-			throw error;
+			var connection = connections.get(destPeerName);
+			if (connection === undefined) {
+				connection = pending.get(destPeerName);
+			}
+			connection.send({
+				type: MsgType.PRIVATE_MSG,
+				data: data
+			});
 		}
 	}
 

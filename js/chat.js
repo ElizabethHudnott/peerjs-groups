@@ -2,11 +2,37 @@
 const peerAPIKey = 'spknmd8wnib2o6r';
 
 var messageBox = $('#message');
+var joinRequestModal = $('#join-requester');
+var joinRequests = [];
 var p2p, userID;
 
 function escapeHTML(text) {
    return text.replace(/</g, '&lt;');
 }
+
+function processJoinRequest() {
+	var userID = joinRequests[joinRequests.length - 1];
+	$('.requesting-user-id').html(escapeHTML(userID));
+	joinRequestModal.modal({});
+}
+
+$('#accept-join').on('click', function (event) {
+	joinRequestModal.modal('hide');
+	var userID = joinRequests.pop();
+	p2p.acceptUser(userID);
+	if (joinRequests.length > 0) {
+		processJoinRequest();
+	}
+});
+
+$('#reject-join').on('click', function (event) {
+	joinRequestModal.modal('hide');
+	var userID = joinRequests.pop();
+	p2p.rejectUser(userID);
+	if (joinRequests.length > 0) {
+		processJoinRequest();
+	}
+});
 
 $('#connect-btn').on('click', function (event) {
 	$('#connect-btn').prop('disabled', true);
@@ -31,6 +57,11 @@ $('#connect-btn').on('click', function (event) {
 				Connected to ${event.sessionID}.
 			</div>
 		`);
+	});
+
+	p2p.on('joinrequest', function (event) {
+		joinRequests.push(event.userID);
+		processJoinRequest();
 	});
 
 	p2p.on('userjoined', function (event) {
