@@ -1,10 +1,13 @@
 "use strict";
 const peerAPIKey = 'spknmd8wnib2o6r';
 
+var connectButton = $('#connect-btn');
 var messageBox = $('#message');
 var joinRequestModal = $('#join-requester');
+
 var joinRequests = [];
-var p2p, userID;
+var connected = false;
+var p2p, myUserID;
 
 function escapeHTML(text) {
    return text.replace(/</g, '&lt;');
@@ -34,71 +37,85 @@ $('#reject-join').on('click', function (event) {
 	}
 });
 
-$('#connect-btn').on('click', function (event) {
-	$('#connect-btn').prop('disabled', true);
+connectButton.on('click', function (event) {
 
-	userID = $('#user-id').val();
+	if (connected) {
+		p2p.disconnect();
+		connected = false;
+		connectButton.html('Connect');
+		connectButton.addClass('btn-primary');
+		connectButton.removeClass('btn-secondary');
+		$('.login-detail').slideDown({easing: 'linear', duration: 2000});
+	} else {
+		connected = true;
+		$('.login-detail').slideUp();
+		connectButton.html('Disconnect');
+		connectButton.addClass('btn-secondary');
+		connectButton.removeClass('btn-primary');
 
-	p2p = new P2P(
-		userID,
-		function (error) {
-				debugger;
-		},
-		{key: peerAPIKey, debug: 2}
+		myUserID = $('#user-id').val();
 
-	);
+		p2p = new P2P(
+			myUserID,
+			function (error) {
+					debugger;
+			},
+			{key: peerAPIKey, debug: 2}
 
-	var sessionID = $('#session-id').val();
-	p2p.connect(sessionID);
+		);
 
-	p2p.on('connected', function (event) {
-		$('#chat').append(`
-			<div class="chat system-message">
-				Connected to ${event.sessionID}.
-			</div>
-		`);
-	});
+		var sessionID = $('#session-id').val();
+		p2p.connect(sessionID);
 
-	p2p.on('joinrequest', function (event) {
-		joinRequests.push(event.userID);
-		processJoinRequest();
-	});
+		p2p.on('connected', function (event) {
+			$('#chat').append(`
+				<div class="chat system-message">
+					Connected to ${event.sessionID}.
+				</div>
+			`);
+		});
 
-	p2p.on('userjoined', function (event) {
-		$('#chat').append(`
-			<div class="chat system-message">
-				<span class="user-id">${event.userID}</span>
-				has joined the conversation.
-			</div>
-		`);
-	});
+		p2p.on('joinrequest', function (event) {
+			joinRequests.push(event.userID);
+			processJoinRequest();
+		});
 
-	p2p.on('userleft', function (event) {
-		$('#chat').append(`
-			<div class="chat system-message">
-				<span class="user-id">${event.userID}</span>
-				has left the conversation.
-			</div>
-		`);
-	});
+		p2p.on('userjoined', function (event) {
+			$('#chat').append(`
+				<div class="chat system-message">
+					<span class="user-id">${event.userID}</span>
+					has joined the conversation.
+				</div>
+			`);
+		});
 
-	p2p.on('message', function (event) {
-		var text = escapeHTML(event.message);
-		var cssClass, annotation;
-		if (event.isPrivate) {
-			cssClass = 'private-msg';
-			annotation = ' (Private)';
-		} else {
-			cssClass = '';
-			annotation = '';
-		}
-		$('#chat').append(`
-			<div class="chat ${cssClass}">
-				<span class="user-id">${event.userID}${annotation}:</span>
-				<pre>${text}</pre>
-			</div>
-		`);
-	})
+		p2p.on('userleft', function (event) {
+			$('#chat').append(`
+				<div class="chat system-message">
+					<span class="user-id">${event.userID}</span>
+					has left the conversation.
+				</div>
+			`);
+		});
+
+		p2p.on('message', function (event) {
+			var text = escapeHTML(event.message);
+			var cssClass, annotation;
+			if (event.isPrivate) {
+				cssClass = 'private-msg';
+				annotation = ' (Private)';
+			} else {
+				cssClass = '';
+				annotation = '';
+			}
+			$('#chat').append(`
+				<div class="chat ${cssClass}">
+					<span class="user-id">${event.userID}${annotation}:</span>
+					<pre>${text}</pre>
+				</div>
+			`);
+		})
+	} // end if connected else not connected
 });
 
 messageBox.on('input', function (event) {
@@ -117,7 +134,7 @@ messageBox.on('keyup', function (event) {
 			messageBox.css('height', '');
 			$("#chat").append(`
 				<div class="chat">
-					<span class="user-id">${userID}:</span>
+					<span class="user-id">${myUserID}:</span>
 					<pre>${escapedText}</pre>
 				</div>
 			`);
