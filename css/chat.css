@@ -16,6 +16,10 @@
 	line-height: 1.4;
 }
 
+.chat img, .chat iframe {
+	max-width: 100%;
+}
+
 .chat pre {
 	display: inline;
 	font-family: sans-serif;
@@ -28,6 +32,10 @@
 
 .user-id {
 	font-weight: bold;
+}
+
+.chat .user-id {
+	vertical-align: top;
 }
 
 #message {

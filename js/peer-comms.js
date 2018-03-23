@@ -1,13 +1,12 @@
 "use strict";
 /* TODO
  *	* Buffer messages when not connected to any other peers.
+ *	* Optionally replay the entire session history to late entrants?
+ *	* Separate connected and joined events.
  *	* Detect connection refused.
- *	* Permit users 
- *	* Check user IDs are unique.
  *	* Disconnect peers who send malformed messages.
  *	* Add method to get the userIDs present in the session.
  *	* Document code.
- *	* Add method to disconnect from a session.
  *	* Add method to disconnect from a particular peer. (Decide individually? Vote?)
  *	* Handle calling connect twice.
  *	* When to disconnect (or destroy?) the peer.
@@ -16,6 +15,7 @@
  *	* Mask sessionID with one time password.
  *	* Verify users' identities somehow. 
  *  * Anonymize connection labels.
+ *	* Add voice and video.
  */
 
 function P2P(userID, onError, options) {

@@ -9,8 +9,34 @@ var joinRequests = [];
 var connected = false;
 var p2p, myUserID;
 
+const imageFileExtensions = /\.(bmp|apng|gif|ico|jpg|jpeg|png|svg|webp)$/;
+const youTubeURL = /^https:\/\/www.youtube.com\/watch\?v=([^&]+)(&(.*))?$/;
+
+function formatURL(url) {
+	var match = url.match(youTubeURL);
+	if (match !== null) {
+		return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' +
+			match[1] +
+			(match[3] === undefined? '' : '?' + match[3]) +
+			'" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
+	}
+
+	if (imageFileExtensions.test(url)) {
+		return `<a href="${url}" target="_blank"><img src="${url}"/></a>`;
+	}
+
+	return '<a href="' + 
+		url +
+		'" target="_blank">' +
+		url.replace(/&.*/, '&amp;&hellip;') +
+		'</a>';
+}
+
 function escapeHTML(text) {
-   return text.replace(/</g, '&lt;');
+	var escaped;
+	escaped = text.replace(/</g, '&lt;');
+	escaped = escaped.replace(/http(s)?:\/\/[\S]+/g, formatURL);
+	return escaped;
 }
 
 function processJoinRequest() {
