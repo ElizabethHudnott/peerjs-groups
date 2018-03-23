@@ -227,6 +227,8 @@ function P2P(userID, onError, options) {
 						if (error.message.slice(-sessionID.length) === sessionID) {
 							createSession(sessionID, onError);
 						} else {
+							/*Ignore. Been asked by the broker to connect to a peer
+							  that's since gone offline. */
 						}
 					} else if (onError) {
 						onError(error);
