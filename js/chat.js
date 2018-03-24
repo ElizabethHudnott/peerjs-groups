@@ -2,6 +2,7 @@
 const peerAPIKey = 'spknmd8wnib2o6r';
 
 var connectButton = $('#connect-btn');
+var chatWindow = $('#chat');
 var messageBox = $('#message');
 var joinRequestModal = $('#join-requester');
 
@@ -10,15 +11,70 @@ var connected = false;
 var p2p, myUserID;
 
 const imageFileExtensions = /\.(bmp|apng|gif|ico|jpg|jpeg|png|svg|webp)$/;
-const youTubeURL = /^https:\/\/www.youtube.com\/watch\?v=([^&]+)(&(.*))?$/;
+const youTubeURL = /^http(s)?:\/\/www.youtube.com\/watch\?v=([^&]+)(&(.*))?$/;
+const slideShareURL = /http(s)?:\/\/www.slideshare.net\/([\w-]+\/[\w-]+)((\/?$)|\?)/
+
+function getParameterByName(name) {
+	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regex = new RegExp(regexS);
+	var url = window.location.href;
+	var result = regex.exec(url);
+	if (result === null) {
+		return "";
+	} else {
+		return decodeURIComponent(result[1].replace(/\+/g, " "));
+	}
+}
+
+function escapeHTML(text) {
+	var escaped;
+	escaped = text.replace(/</g, '&lt;');
+	escaped = escaped.replace(/http(s)?:\/\/[\S]+/g, formatURL);
+	return escaped;
+}
 
 function formatURL(url) {
-	var match = url.match(youTubeURL);
+	var match, url2, maxWidth;
+	match = url.match(youTubeURL);
 	if (match !== null) {
-		return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' +
-			match[1] +
-			(match[3] === undefined? '' : '?' + match[3]) +
-			'" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
+		return '<div class="iframe-container">' +
+			'<iframe width="640" height="360" src="https://www.youtube-nocookie.com/embed/' +
+			match[2] +
+			(match[4] === undefined? '' : '?' + match[4]) +
+			'" allow="encrypted-media" allowfullscreen="true"></iframe></div>';
+	}
+
+	match = url.match(slideShareURL);
+	if (match !== null) {
+		url2 = 'https://www.slideshare.net/' + match[2];
+		maxWidth = Math.floor(chatWindow.width());
+		$.ajax({
+			url:
+				'http://www.slideshare.net/api/oembed/2?url=' + 
+				encodeURIComponent(url2) + 
+				'&maxwidth=' + maxWidth + 
+				'&format=json',
+			dataType: 'jsonp',
+			success: function (data) {
+				var width = Math.min(maxWidth, Math.max(629, data.width));
+				var height = Math.round(width * data.height / data.width);
+				var match = data.html.match(/\ssrc=["']?([^"'>\s]*)/);
+				$('.iframe-container[data-oembed="' + url2 + '"]').html(`
+					<iframe
+						src="${match[1]}"
+						width="${width}"
+						height="${height}"
+						allowfullscreen="true"
+					>
+					</iframe>
+					<figcaption>
+						<a href="${url2}" target="_blank">${data.title}</a>
+					</figcaption>
+				`);
+			}
+		});
+		return '<figure class="iframe-container" data-oembed="' + url2 + '"></figure>';
 	}
 
 	if (imageFileExtensions.test(url)) {
@@ -30,13 +86,6 @@ function formatURL(url) {
 		'" target="_blank">' +
 		url.replace(/&.*/, '&amp;&hellip;') +
 		'</a>';
-}
-
-function escapeHTML(text) {
-	var escaped;
-	escaped = text.replace(/</g, '&lt;');
-	escaped = escaped.replace(/http(s)?:\/\/[\S]+/g, formatURL);
-	return escaped;
 }
 
 function processJoinRequest() {
@@ -94,7 +143,7 @@ connectButton.on('click', function (event) {
 		p2p.connect(sessionID);
 
 		p2p.on('connected', function (event) {
-			$('#chat').append(`
+			chatWindow.append(`
 				<div class="chat system-message">
 					Connected to ${event.sessionID}.
 				</div>
@@ -107,7 +156,7 @@ connectButton.on('click', function (event) {
 		});
 
 		p2p.on('userjoined', function (event) {
-			$('#chat').append(`
+			chatWindow.append(`
 				<div class="chat system-message">
 					<span class="user-id">${event.userID}</span>
 					has joined the conversation.
@@ -116,7 +165,7 @@ connectButton.on('click', function (event) {
 		});
 
 		p2p.on('userleft', function (event) {
-			$('#chat').append(`
+			chatWindow.append(`
 				<div class="chat system-message">
 					<span class="user-id">${event.userID}</span>
 					has left the conversation.
@@ -126,6 +175,7 @@ connectButton.on('click', function (event) {
 
 		p2p.on('message', function (event) {
 			var text = escapeHTML(event.message);
+			var scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
 			var cssClass, annotation;
 			if (event.isPrivate) {
 				cssClass = 'private-msg';
@@ -134,38 +184,58 @@ connectButton.on('click', function (event) {
 				cssClass = '';
 				annotation = '';
 			}
-			$('#chat').append(`
+			chatWindow.append(`
 				<div class="chat ${cssClass}">
 					<span class="user-id">${event.userID}${annotation}:</span>
 					<pre>${text}</pre>
 				</div>
 			`);
+			if (scrolledToBottom) {
+				chatWindow.scrollTop(chatWindow[0].scrollHeight);
+			}
 		})
 	} // end if connected else not connected
 });
 
+function resizeMessageBox() {
+	messageBox.css('min-height', '');
+	var height = Math.min(messageBox[0].scrollHeight + 2, 250);
+	messageBox.css('min-height', height + 'px');
+}
+
 messageBox.on('input', function (event) {
-    $(this).height(0).height(this.scrollHeight);
+	resizeMessageBox();
 });
 
-messageBox.on('keyup', function (event) {
-	var textToSend, escapedText;
+messageBox.on('keydown', function (event) {
 	if (event.key === 'Enter') {
+		event.preventDefault();
 		if (event.ctrlKey) {
 			messageBox.val(messageBox.val() + '\n');
-			messageBox.height(0).height(this.scrollHeight);
+			resizeMessageBox();
 		} else {
-			textToSend = messageBox.val();
-			escapedText = escapeHTML(textToSend);
-			messageBox.css('height', '');
-			$("#chat").append(`
+			let textToSend = messageBox.val();
+			let escapedText = escapeHTML(textToSend);
+			let scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
+			chatWindow.append(`
 				<div class="chat">
 					<span class="user-id">${myUserID}:</span>
 					<pre>${escapedText}</pre>
 				</div>
 			`);
 			messageBox.val('');
+			resizeMessageBox();
+			if (scrolledToBottom) {
+				chatWindow.scrollTop(chatWindow[0].scrollHeight);
+			}
 			p2p.send(textToSend);
 		}
 	}
 });
+
+{
+	let sessionIDInURL = getParameterByName('room');
+	if (sessionIDInURL) {
+		$('#session-id').val(sessionIDInURL);
+	}
+}

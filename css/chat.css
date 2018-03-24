@@ -1,3 +1,12 @@
+figcaption {
+	font-weight: bold;
+}
+
+textarea {
+	border-width: 1px;
+	padding: 2px;
+}
+
 #container {
 	height: 100vh;
 }
@@ -9,15 +18,26 @@
 
 #chat {
 	flex-shrink: 1;
-	overflow: auto;
+	overflow-x: auto;
+	overflow-y: scroll;
 }
 
 .chat {
 	line-height: 1.4;
 }
 
-.chat img, .chat iframe {
+.chat iframe {
+	border-width: 0px;
 	max-width: 100%;
+}
+
+.chat img {
+	max-width: 100%;
+}
+
+.iframe-container {
+	text-align: center;
+	white-space: normal;
 }
 
 .chat pre {
