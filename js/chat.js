@@ -16,7 +16,7 @@ const slideShareURL = /http(s)?:\/\/www.slideshare.net\/([\w-]+\/[\w-]+)((\/?$)|
 
 function getParameterByName(name) {
 	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regexS = "[\\?&;]"+name+"=([^&;#]*)";
 	var regex = new RegExp(regexS);
 	var url = window.location.href;
 	var result = regex.exec(url);
@@ -30,19 +30,36 @@ function getParameterByName(name) {
 function escapeHTML(text) {
 	var escaped;
 	escaped = text.replace(/</g, '&lt;');
-	escaped = escaped.replace(/http(s)?:\/\/[\S]+/g, formatURL);
+	escaped = escaped.replace(/http(s)?:\/\/[\w$\-.+!*'(),;/?=&%~\[\]]+/g, formatURL);
+	escaped = escaped.replace(
+		/(^|[\s])#(\w{3,})/g,
+		'$1<a href="https://twitter.com/search?src=typd&q=%23$2" target="_blank">#$2</a>'
+	);
 	return escaped;
 }
 
 function formatURL(url) {
-	var match, url2, maxWidth;
+	var punctuation, essentialPunctuation, match, url2, maxWidth;
+	punctuation = url.match(/([,;.?!')]+)$/)[1];
+	if (punctuation === undefined) {
+		punctuation = '';
+		essentialPunctuation = '';
+	} else {
+		url = url.slice(0, -(punctuation.length));
+		essentialPunctuation = punctuation.match(/([?!')].*)?/)[1];
+		if (essentialPunctuation === undefined) {
+			essentialPunctuation = '';
+		}
+	}
+
 	match = url.match(youTubeURL);
 	if (match !== null) {
 		return '<div class="iframe-container">' +
 			'<iframe width="640" height="360" src="https://www.youtube-nocookie.com/embed/' +
 			match[2] +
 			(match[4] === undefined? '' : '?' + match[4]) +
-			'" allow="encrypted-media" allowfullscreen="true"></iframe></div>';
+			'" allow="encrypted-media" allowfullscreen="true"></iframe></div>' +
+			essentialPunctuation;
 	}
 
 	match = url.match(slideShareURL);
@@ -74,18 +91,22 @@ function formatURL(url) {
 				`);
 			}
 		});
-		return '<figure class="iframe-container" data-oembed="' + url2 + '"></figure>';
+		return '<figure class="iframe-container" data-oembed="' +
+			url2 +
+			'"></figure>' +
+			essentialPunctuation;
 	}
 
 	if (imageFileExtensions.test(url)) {
-		return `<a href="${url}" target="_blank"><img src="${url}"/></a>`;
+		return `<a href="${url}" target="_blank"><img src="${url}"/></a>${essentialPunctuation}`;
 	}
 
 	return '<a href="' + 
 		url +
 		'" target="_blank">' +
 		url.replace(/&.*/, '&amp;&hellip;') +
-		'</a>';
+		'</a>' +
+		punctuation;
 }
 
 function processJoinRequest() {
