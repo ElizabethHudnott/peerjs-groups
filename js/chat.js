@@ -30,9 +30,10 @@ function getParameterByName(name) {
 function escapeHTML(text) {
 	var escaped;
 	escaped = text.replace(/</g, '&lt;');
+	escaped = escaped.replace(/(^|\s)\*([^\s*][^*]*)\*/, '$1<strong>$2</strong>');
 	escaped = escaped.replace(/http(s)?:\/\/[\w$\-.+!*'(),;/?=&%~\[\]]+/g, formatURL);
 	escaped = escaped.replace(
-		/(^|[\s])#(\w{3,})/g,
+		/(^|\s)#(\w{3,})/g,
 		'$1<a href="https://twitter.com/search?src=typd&q=%23$2" target="_blank">#$2</a>'
 	);
 	return escaped;
@@ -104,7 +105,7 @@ function formatURL(url) {
 	return '<a href="' + 
 		url +
 		'" target="_blank">' +
-		url.replace(/&.*/, '&amp;&hellip;') +
+		url.replace(/[&;].*/, '&amp;&hellip;') +
 		'</a>' +
 		punctuation;
 }
