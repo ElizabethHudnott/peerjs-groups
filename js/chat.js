@@ -167,7 +167,15 @@ connectButton.on('click', function (event) {
 		p2p.on('connected', function (event) {
 			chatWindow.append(`
 				<div class="chat system-message">
-					Connected to ${event.sessionID}.
+					Connected to ${event.sessionID}. Waiting for permission to join the conversation.
+				</div>
+			`);
+		});
+
+		p2p.on('joined', function (event) {
+			chatWindow.append(`
+				<div class="chat system-message">
+					You're now part of the conversation ${event.sessionID}.
 				</div>
 			`);
 		});

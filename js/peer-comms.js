@@ -2,7 +2,6 @@
 /* TODO
  *	* Buffer messages when not connected to any other peers.
  *	* Optionally replay the entire session history to late entrants?
- *	* Separate connected and joined events.
  *	* Detect connection refused.
  *	* Disconnect peers who send malformed messages.
  *	* Add method to get the userIDs present in the session.
@@ -41,10 +40,18 @@ function P2P(userID, onError, options) {
 		DUPLICATE_USER_ID: 1,
 	};
 
-	function sessionEntered(id) {
+	function connected(id) {
 		sessionID = id;
 		var event = new jQuery.Event('connected', {
 			sessionID: id,
+			userID: userID
+		});
+		$(me).triggerHandler(event);
+	}
+
+	function sessionEntered() {
+		var event = new jQuery.Event('joined', {
+			sessionID: sessionID,
 			userID: userID
 		});
 		$(me).triggerHandler(event);
@@ -80,7 +87,7 @@ function P2P(userID, onError, options) {
 				for (let peerName of message.data) {
 					connectTo(peerName);
 				}
-				sessionEntered(sessionID);
+				sessionEntered();
 			}
 			break;
 		case MsgType.IDENTIFY:
@@ -159,7 +166,10 @@ function P2P(userID, onError, options) {
 			}
 		});
 
-		peer.on('open', sessionEntered);
+		peer.on('open', function () {
+			connected(peer.id);
+			sessionEntered();
+		});
 
 		peer.on('connection', function (connection) {
 			connection.on('open', function () {
@@ -274,6 +284,7 @@ function P2P(userID, onError, options) {
 
 			firstConnection.on('open', function () {
 				connections.set(sessionID, this);
+				connected(sessionID);
 			});
 
 		} else {
