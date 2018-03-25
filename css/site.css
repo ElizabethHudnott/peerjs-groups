@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:600i');
 
+button:disabled img {
+	filter: grayscale(1);
+}
+
 .display-3 {
 	font-family: "Open Sans", sans-serif;
 }
@@ -11,6 +15,10 @@
 
 .lead {
 	margin-left: 1.5rem;
+}
+
+.bg-light {
+	background-color: hsl(188, 50%, 90%)!important;
 }
 
 .app-container {

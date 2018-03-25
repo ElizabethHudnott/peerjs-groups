@@ -2,13 +2,11 @@
 /* TODO
  *	* Buffer messages when not connected to any other peers.
  *	* Optionally replay the entire session history to late entrants?
- *	* Detect connection refused.
  *	* Disconnect peers who send malformed messages.
  *	* Add method to get the userIDs present in the session.
  *	* Document code.
  *	* Add method to disconnect from a particular peer. (Decide individually? Vote?)
  *	* Handle calling connect twice.
- *	* When to disconnect (or destroy?) the peer.
  *	* Handle peer getting disconnected from peer server.
  *  * Handle when the peer named after the session goes down.
  *	* Mask sessionID with one time password.
@@ -57,7 +55,7 @@ function P2P(onError, options) {
 
 	const ErrorType = {
 		DUPLICATE_USER_ID: 1,
-		OFFER_REJECTED: 2
+		PROHIBITED: 2
 	};
 
 	function connected(id) {
@@ -72,7 +70,8 @@ function P2P(onError, options) {
 	function sessionEntered() {
 		var event = new jQuery.Event('joined', {
 			sessionID: sessionID,
-			userID: escapeHTML(userID)
+			userID: escapeHTML(userID),
+			isAdmin: peer.id === sessionID
 		});
 		$(me).triggerHandler(event);
 	}
@@ -122,7 +121,7 @@ function P2P(onError, options) {
 			$(me).triggerHandler(event);
 			break;
 		case MsgType.CONNECT_ERROR:
-			event = new jQuery.Event('rejected', {
+			event = new jQuery.Event('ejected', {
 				sessionID: sessionID,
 				errorType: message.errorType,
 				message: message.data
@@ -230,8 +229,8 @@ function P2P(onError, options) {
 				if (rejectedUsers.has(newUserID)) {
 					rejectConnection(
 						connection,
-						ErrorType.OFFER_REJECTED,
-						'Your application was declined.'
+						ErrorType.PROHIBITED,
+						'You are banned from this conversation.'
 					);
 					return;
 				}
@@ -398,13 +397,16 @@ function P2P(onError, options) {
 	this.rejectUser = function(newUserID) {
 		var peerName = usersToPeers.get(newUserID);
 		var connection = pending.get(peerName);
+		if (connection === undefined) {
+			connection = connections.get(peerName);
+		}
 		rejectedUsers.add(newUserID);
 		peersToUsers.delete(peerName);
 		usersToPeers.delete(newUserID);
 		rejectConnection(
 			connection,
-			ErrorType.OFFER_REJECTED,
-			'Your application was declined.'
+			ErrorType.PROHIBITED,
+			'You are banned from this conversation.'
 		);
 	}
 
@@ -443,7 +445,7 @@ function P2P(onError, options) {
 	 * userleft
 	 * message
 	 * joinrequest
-	 * rejected
+	 * ejected
 	 */
 	this.on = function(eventType, handler) {
 		$(this).on(eventType, handler);

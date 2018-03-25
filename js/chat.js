@@ -5,7 +5,10 @@ var connectButton = $('#connect-btn');
 var chatWindow = $('#chat');
 var userList = $('#user-list');
 var messageBox = $('#message');
-var joinRequestModal = $('#join-requester');
+var joinRequestModal = $('#join-request-dialog');
+var confirmationModal = $('#confirmation-dialog');
+var confirmationTitle = $('#confirm-action-title');
+var confirmationAction = $('#confirm-action-description');
 
 const imageFileExtensions = /\.(bmp|apng|gif|ico|jpg|jpeg|png|svg|webp)$/;
 const youTubeURL = /^http(s)?:\/\/www.youtube.com\/watch\?v=([^&]+)(&(.*))?$/;
@@ -180,6 +183,18 @@ connectButton.on('click', function (event) {
 	} // end if connected else not connected
 });
 
+userList.on('input', function (event) {
+	$('#ban-user-btn').prop('disabled', $(this).val() === 'everyone');
+});
+
+$('#ban-user-btn').on('click', function (event) {
+	var userToBan = userList.val();
+	var username = userList.children(`[value=${userToBan}]`).html();
+	confirmationTitle.html('Ban ' + username);
+	confirmationAction.html(`ban <span class="user-id">${username}</span>`);
+	confirmationModal.modal('show');
+});
+
 p2p.on('connected', function (event) {
 	chatWindow.append(`
 		<div class="chat system-message">
@@ -194,9 +209,12 @@ p2p.on('joined', function (event) {
 			You are now part of the conversation "${event.sessionID}".
 		</div>
 	`);
+	if (event.isAdmin) {
+		$('#ban-user-btn').show();
+	}
 });
 
-p2p.on('rejected', function (event) {
+p2p.on('ejected', function (event) {
 	chatWindow.append(`
 		<div class="chat system-message">
 			${event.message}
