@@ -35,11 +35,12 @@ function escapeHTML(input) {
 	}
 }
 
-function P2P(userID, onError, options) {
+function P2P(onError, options) {
+	var userID;
 	var connections = new Map();
 	var pending = new Map();
 	var peersToUsers = new Map();
-	var usersToPeers = new Map(); //user IDs are escaped.
+	var usersToPeers = new Map(); //user IDs are HTML escaped.
 	var acceptedUsers = new Set();
 	var rejectedUsers = new Set();
 	var peer, sessionID;
@@ -47,22 +48,23 @@ function P2P(userID, onError, options) {
 	const me = this;
 
 	const MsgType = {
-		'DATA': 1,
-		'IDENTIFY': 2,
-		'PEER_LIST': 3,
-		'PRIVATE_MSG': 4,
-		'ERROR': 5,
+		DATA: 1,
+		IDENTIFY: 2,
+		PEER_LIST: 3,
+		PRIVATE_MSG: 4,
+		CONNECT_ERROR: 5,
 	};
 
 	const ErrorType = {
 		DUPLICATE_USER_ID: 1,
+		OFFER_REJECTED: 2
 	};
 
 	function connected(id) {
 		sessionID = id;
 		var event = new jQuery.Event('connected', {
 			sessionID: id,
-			userID: userID
+			userID: escapeHTML(userID)
 		});
 		$(me).triggerHandler(event);
 	}
@@ -70,7 +72,7 @@ function P2P(userID, onError, options) {
 	function sessionEntered() {
 		var event = new jQuery.Event('joined', {
 			sessionID: sessionID,
-			userID: userID
+			userID: escapeHTML(userID)
 		});
 		$(me).triggerHandler(event);
 	}
@@ -98,10 +100,10 @@ function P2P(userID, onError, options) {
 	}
 
 	function dataReceived(message) {
+		var event;
 		switch (message.type) {
 		case MsgType.PEER_LIST:
 			if (this.peer === sessionID) {
-				this.on('close', connectionClosed);
 				for (let peerName of message.data) {
 					connectTo(peerName);
 				}
@@ -119,21 +121,30 @@ function P2P(userID, onError, options) {
 			});
 			$(me).triggerHandler(event);
 			break;
-		default:
-			var event = new jQuery.Event('message', {
+		case MsgType.CONNECT_ERROR:
+			event = new jQuery.Event('rejected', {
+				sessionID: sessionID,
+				errorType: message.errorType,
+				message: message.data
+			});
+			$(me).triggerHandler(event);
+			break;
+		case MsgType.DATA:
+		case MsgType.PRIVATE_MSG:
+			event = new jQuery.Event('message', {
 				sessionID: sessionID,
 				userID: escapeHTML(getUserID(this)),
 				isPrivate: message.type === MsgType.PRIVATE_MSG,
 				message: message.data
 			});
-			$(me).triggerHandler(event);			
+			$(me).triggerHandler(event);
 		}
 	}
 
 	function connectionClosed() {
 		var label = this.label;
 		var peerName = this.peer;
-		var disconnectedUser;
+		var disconnectedUser, event;
 		if (label === userID) {
 			disconnectedUser = peersToUsers.get(peerName);
 		} else {
@@ -141,14 +152,19 @@ function P2P(userID, onError, options) {
 		}
 		connections.delete(peerName);
 
-		var event = new jQuery.Event('userleft', {
-			sessionID: sessionID,
-			userID: escapeHTML(disconnectedUser)
-		});
-		$(me).triggerHandler(event);
+		if (disconnectedUser !== undefined) {
+			event = new jQuery.Event('userleft', {
+				sessionID: sessionID,
+				userID: escapeHTML(disconnectedUser)
+			});
+			$(me).triggerHandler(event);
+		}
 	}
 
 	function disconnect() {
+		for (let connection of connections.values()) {
+			connection.off('close', connectionClosed);
+		}
 		peer.destroy();
 		peersToUsers.clear();
 		usersToPeers.clear();
@@ -179,6 +195,17 @@ function P2P(userID, onError, options) {
 		connection.on('close', connectionClosed);
 	}
 
+	function rejectConnection(connection, reason, message) {
+		connection.send({
+			type: MsgType.CONNECT_ERROR,
+			errorType: reason,
+			data: message
+		});
+		setTimeout(function () {
+			connection.close();
+		}, 1000);
+	}
+
 	function createSession () {
 		peer = new Peer(sessionID, options);
 		peer.on('error', function(error) {
@@ -198,26 +225,40 @@ function P2P(userID, onError, options) {
 
 		peer.on('connection', function (connection) {
 			connection.on('open', function () {
+				//Rejected users are not welcome.
 				var newUserID = connection.label;
 				if (rejectedUsers.has(newUserID)) {
-					connection.close();
+					rejectConnection(
+						connection,
+						ErrorType.OFFER_REJECTED,
+						'Your application was declined.'
+					);
 					return;
 				}
-				var existingPeerName = peersToUsers.get(newUserID);
-				if (connections.has(existingPeerName)) {
-					connection.send({
-						type: MsgType.ERROR,
-						data: ErrorType.DUPLICATE_USER_ID
-					});
-					connection.close();
+
+				//No support currently for the same user being logged in from more than one place.
+				var existingPeerName = usersToPeers.get(newUserID);
+				if (newUserID === userID ||
+					connections.has(existingPeerName) ||
+					pending.has(existingPeerName)
+				) {
+					rejectConnection(
+						connection,
+						ErrorType.DUPLICATE_USER_ID,
+						`User ID "${newUserID}" has already been taken.`
+					);
 					return;
 				}
 
 				var peerName = connection.peer;
-				var existingUserID = escapeHTML(peersToUsers.get(peerName));
+
+				//An existing peer might change it's user ID.
+				var existingUserID = peersToUsers.get(peerName);
 				if (existingUserID !== undefined) {
 					usersToPeers.delete(existingUserID);
 				}
+
+				//Respond to the connection request.
 				peersToUsers.set(peerName, newUserID);
 				usersToPeers.set(escapeHTML(newUserID), peerName);
 
@@ -233,21 +274,20 @@ function P2P(userID, onError, options) {
 						usersToPeers.delete(escapeHTML(this.label));
 					});
 
-					if (existingUserID === undefined) {
-						var event = new jQuery.Event('joinrequest', {
-							sessionID: sessionID,
-							userID: escapeHTML(connection.label)
-						});
-						$(me).triggerHandler(event);
-					}
+					var event = new jQuery.Event('joinrequest', {
+						sessionID: sessionID,
+						userID: escapeHTML(connection.label)
+					});
+					$(me).triggerHandler(event);
 				}
 			});
 		});
 	}
 
-	this.connect = function(sessionIDToJoin) {
+	this.connect = function(sessionIDToJoin, myUserID) {
 		var firstConnection;
 		sessionID = escapeHTML(sessionIDToJoin);
+		userID = myUserID;
 		var newPeerNeeded = (peer === undefined || peer.disconnected);
 
 		if (sessionID !== undefined && (newPeerNeeded || peer.id !== sessionID)) {
@@ -275,13 +315,21 @@ function P2P(userID, onError, options) {
 				peer.on('connection', function (connection) {
 					connection.on('open', function () {
 						if (connection.metadata.sessionID === sessionID) {
-							var peerName = connection.peer;
 							var newUserID = connection.label;
-							connections.set(peerName, connection);
+							var peerName = connection.peer;
+
+							//An existing peer might change it's user ID.
+							var existingUserID = peersToUsers.get(peerName);
+							if (existingUserID !== undefined) {
+								usersToPeers.delete(existingUserID);
+							}
+
+							//Respond to the connection request.
 							peersToUsers.set(peerName, newUserID);
 							usersToPeers.set(escapeHTML(newUserID), peerName);
-							sendIdentity(connection);
 
+							connections.set(peerName, connection);
+							sendIdentity(connection);
 							connection.on('data', dataReceived);
 							connection.on('error', onError);
 							connection.on('close', connectionClosed);
@@ -353,7 +401,11 @@ function P2P(userID, onError, options) {
 		rejectedUsers.add(newUserID);
 		peersToUsers.delete(peerName);
 		usersToPeers.delete(newUserID);
-		connection.close();
+		rejectConnection(
+			connection,
+			ErrorType.OFFER_REJECTED,
+			'Your application was declined.'
+		);
 	}
 
 	this.send = function(data) {
@@ -384,6 +436,15 @@ function P2P(userID, onError, options) {
 		}
 	}
 
+	/**
+	 * connected
+	 * joined
+	 * userpresent
+	 * userleft
+	 * message
+	 * joinrequest
+	 * rejected
+	 */
 	this.on = function(eventType, handler) {
 		$(this).on(eventType, handler);
 	}

@@ -7,13 +7,25 @@ var userList = $('#user-list');
 var messageBox = $('#message');
 var joinRequestModal = $('#join-requester');
 
-var joinRequests = [];
-var connected = false;
-var p2p, myUserID;
-
 const imageFileExtensions = /\.(bmp|apng|gif|ico|jpg|jpeg|png|svg|webp)$/;
 const youTubeURL = /^http(s)?:\/\/www.youtube.com\/watch\?v=([^&]+)(&(.*))?$/;
 const slideShareURL = /http(s)?:\/\/www.slideshare.net\/([\w-]+\/[\w-]+)((\/?$)|\?)/
+
+var joinRequests = [];
+var connected = false;
+var p2p = new P2P(
+	function (error) {
+		chatWindow.append(`
+			<div class="chat system-message">
+				Error: ${error.message}
+			</div>
+		`);
+		console.error(error);
+		debugger;
+	},
+	{key: peerAPIKey, debug: 2}
+);
+var myUserID;
 
 function getParameterByName(name) {
 	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
@@ -135,15 +147,25 @@ $('#reject-join').on('click', function (event) {
 	processJoinRequest();
 });
 
-connectButton.on('click', function (event) {
+function disconnected() {
+	connected = false;
+	connectButton.html('Connect');
+	connectButton.addClass('btn-primary');
+	connectButton.removeClass('btn-secondary');
+	$('.login-detail').slideDown({easing: 'linear', duration: 2000});
+	userList.children(':not([value=everyone])').remove();
+}
 
+connectButton.on('click', function (event) {
 	if (connected) {
 		p2p.disconnect();
-		connected = false;
-		connectButton.html('Connect');
-		connectButton.addClass('btn-primary');
-		connectButton.removeClass('btn-secondary');
-		$('.login-detail').slideDown({easing: 'linear', duration: 2000});
+		disconnected();
+		chatWindow.append(`
+			<div class="chat system-message">
+				<span class="user-id">${myUserID}</span>
+				has left the conversation.
+			</div>
+		`);
 	} else {
 		connected = true;
 		$('.login-detail').slideUp();
@@ -152,97 +174,97 @@ connectButton.on('click', function (event) {
 		connectButton.removeClass('btn-primary');
 
 		myUserID = $('#user-id').val();
-
-		p2p = new P2P(
-			myUserID,
-			function (error) {
-					debugger;
-			},
-			{key: peerAPIKey, debug: 2}
-
-		);
-
 		var sessionID = $('#session-id').val();
-		p2p.connect(sessionID);
+		p2p.connect(sessionID, myUserID);
 
-		p2p.on('connected', function (event) {
-			chatWindow.append(`
-				<div class="chat system-message">
-					Connected to ${event.sessionID}. Waiting for permission to join the conversation.
-				</div>
-			`);
-		});
-
-		p2p.on('joined', function (event) {
-			chatWindow.append(`
-				<div class="chat system-message">
-					You're now part of the conversation ${event.sessionID}.
-				</div>
-			`);
-		});
-
-		p2p.on('joinrequest', function (event) {
-			joinRequests.push(event.userID);
-			if (joinRequests.length == 1) {
-				processJoinRequest();
-			}
-		});
-
-		p2p.on('userpresent', function (event) {
-			var userID = event.userID;
-			chatWindow.append(`
-				<div class="chat system-message">
-					<span class="user-id">${userID}</span> is present.
-				</div>
-			`);
-			var userListOptions = userList.children();
-			var newOption = `<option value="${userID}">${userID}</option>`;
-			var inserted = false;
-			for (let i = 0; i < userListOptions.length; i++) {
-				let option = userListOptions.eq(i);
-				let value = option.attr('value');
-				if (value > userID && value !== 'everyone') {
-					$(newOption).insertBefore(option);
-					inserted = true;
-					break;
-				}
-			}
-			if (!inserted) {
-				userList.append(newOption);
-			}
-		});
-
-		p2p.on('userleft', function (event) { 
-			var userID = event.userID
-			chatWindow.append(`
-				<div class="chat system-message">
-					<span class="user-id">${userID}</span>
-					has left the conversation.
-				</div>
-			`);
-			userList.children(`[value=${userID}]`).remove();
-		});
-
-		p2p.on('message', function (event) {
-			var text = formatAsHTML(event.message);
-			var scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
-			var annotation;
-			if (event.isPrivate) {
-				annotation = ' (Private)';
-			} else {
-				annotation = '';
-			}
-			chatWindow.append(`
-				<div class="chat">
-					<span class="user-id">${event.userID}${annotation}:</span>
-					<pre>${text}</pre>
-				</div>
-			`);
-			if (scrolledToBottom) {
-				chatWindow.scrollTop(chatWindow[0].scrollHeight);
-			}
-		})
 	} // end if connected else not connected
+});
+
+p2p.on('connected', function (event) {
+	chatWindow.append(`
+		<div class="chat system-message">
+			Connected to ${event.sessionID}. Waiting for permission to join the conversation.
+		</div>
+	`);
+});
+
+p2p.on('joined', function (event) {
+	chatWindow.append(`
+		<div class="chat system-message">
+			You are now part of the conversation "${event.sessionID}".
+		</div>
+	`);
+});
+
+p2p.on('rejected', function (event) {
+	chatWindow.append(`
+		<div class="chat system-message">
+			${event.message}
+		</div>
+	`);
+	disconnected();
+});
+
+p2p.on('joinrequest', function (event) {
+	joinRequests.push(event.userID);
+	if (joinRequests.length == 1) {
+		processJoinRequest();
+	}
+});
+
+p2p.on('userpresent', function (event) {
+	var userID = event.userID;
+	chatWindow.append(`
+		<div class="chat system-message">
+			<span class="user-id">${userID}</span> is present.
+		</div>
+	`);
+	var userListOptions = userList.children();
+	var newOption = `<option value="${userID}">${userID}</option>`;
+	var inserted = false;
+	for (let i = 0; i < userListOptions.length; i++) {
+		let option = userListOptions.eq(i);
+		let value = option.attr('value');
+		if (value > userID && value !== 'everyone') {
+			$(newOption).insertBefore(option);
+			inserted = true;
+			break;
+		}
+	}
+	if (!inserted) {
+		userList.append(newOption);
+	}
+});
+
+p2p.on('userleft', function (event) { 
+	var userID = event.userID
+	chatWindow.append(`
+		<div class="chat system-message">
+			<span class="user-id">${userID}</span>
+			has left the conversation.
+		</div>
+	`);
+	userList.children(`[value=${userID}]`).remove();
+});
+
+p2p.on('message', function (event) {
+	var text = formatAsHTML(event.message);
+	var scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
+	var annotation;
+	if (event.isPrivate) {
+		annotation = ' (Private)';
+	} else {
+		annotation = '';
+	}
+	chatWindow.append(`
+		<div class="chat">
+			<span class="user-id">${event.userID}${annotation}:</span>
+			<pre>${text}</pre>
+		</div>
+	`);
+	if (scrolledToBottom) {
+		chatWindow.scrollTop(chatWindow[0].scrollHeight);
+	}
 });
 
 function resizeMessageBox() {
