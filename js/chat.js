@@ -3,6 +3,7 @@ const peerAPIKey = 'spknmd8wnib2o6r';
 
 var connectButton = $('#connect-btn');
 var chatWindow = $('#chat');
+var userList = $('#user-list');
 var messageBox = $('#message');
 var joinRequestModal = $('#join-requester');
 
@@ -27,27 +28,29 @@ function getParameterByName(name) {
 	}
 }
 
-function escapeHTML(text) {
-	var escaped;
-	escaped = text.replace(/</g, '&lt;');
-	escaped = escaped.replace(/(^|\s)\*([^\s*][^*]*)\*/, '$1<strong>$2</strong>');
-	escaped = escaped.replace(/http(s)?:\/\/[\w$\-.+!*'(),;/?=&%~\[\]]+/g, formatURL);
-	escaped = escaped.replace(
+function formatAsHTML(text) {
+	var formatted;
+	formatted = escapeHTML(text);
+	// *emphasis*
+	formatted = formatted.replace(/(^|\s)\*([^\s*][^*]*)\*/g, '$1<strong>$2</strong>');
+	// hyperlinks
+	formatted = formatted.replace(/http(s)?:\/\/[\w$\-.+!*(),;/?=&%~\[\]]+/g, formatURL);
+	// hashtags
+	formatted = formatted.replace(
 		/(^|\s)#(\w{3,})/g,
 		'$1<a href="https://twitter.com/search?src=typd&q=%23$2" target="_blank">#$2</a>'
 	);
-	return escaped;
+	return formatted;
 }
 
 function formatURL(url) {
 	var punctuation, essentialPunctuation, match, url2, maxWidth;
-	punctuation = url.match(/([,;.?!')]+)$/)[1];
-	if (punctuation === undefined) {
-		punctuation = '';
+	punctuation = url.match(/([,;.?!)]*)$/)[1];
+	if (punctuation === '') {
 		essentialPunctuation = '';
 	} else {
 		url = url.slice(0, -(punctuation.length));
-		essentialPunctuation = punctuation.match(/([?!')].*)?/)[1];
+		essentialPunctuation = punctuation.match(/([?!)].*)?/)[1];
 		if (essentialPunctuation === undefined) {
 			essentialPunctuation = '';
 		}
@@ -111,27 +114,25 @@ function formatURL(url) {
 }
 
 function processJoinRequest() {
-	var userID = joinRequests[joinRequests.length - 1];
-	$('.requesting-user-id').html(escapeHTML(userID));
-	joinRequestModal.modal({});
+	if (joinRequests.length == 0) {
+		joinRequestModal.modal('hide');
+	} else {
+		var userID = joinRequests[0];
+		$('.requesting-user-id').html(userID);
+		joinRequestModal.modal('show');
+	}
 }
 
 $('#accept-join').on('click', function (event) {
-	joinRequestModal.modal('hide');
-	var userID = joinRequests.pop();
+	var userID = joinRequests.shift();
 	p2p.acceptUser(userID);
-	if (joinRequests.length > 0) {
-		processJoinRequest();
-	}
+	processJoinRequest();
 });
 
 $('#reject-join').on('click', function (event) {
-	joinRequestModal.modal('hide');
-	var userID = joinRequests.pop();
+	var userID = joinRequests.shift();
 	p2p.rejectUser(userID);
-	if (joinRequests.length > 0) {
-		processJoinRequest();
-	}
+	processJoinRequest();
 });
 
 connectButton.on('click', function (event) {
@@ -182,40 +183,57 @@ connectButton.on('click', function (event) {
 
 		p2p.on('joinrequest', function (event) {
 			joinRequests.push(event.userID);
-			processJoinRequest();
+			if (joinRequests.length == 1) {
+				processJoinRequest();
+			}
 		});
 
-		p2p.on('userjoined', function (event) {
+		p2p.on('userpresent', function (event) {
+			var userID = event.userID;
 			chatWindow.append(`
 				<div class="chat system-message">
-					<span class="user-id">${event.userID}</span>
-					has joined the conversation.
+					<span class="user-id">${userID}</span> is present.
 				</div>
 			`);
+			var userListOptions = userList.children();
+			var newOption = `<option value="${userID}">${userID}</option>`;
+			var inserted = false;
+			for (let i = 0; i < userListOptions.length; i++) {
+				let option = userListOptions.eq(i);
+				let value = option.attr('value');
+				if (value > userID && value !== 'everyone') {
+					$(newOption).insertBefore(option);
+					inserted = true;
+					break;
+				}
+			}
+			if (!inserted) {
+				userList.append(newOption);
+			}
 		});
 
-		p2p.on('userleft', function (event) {
+		p2p.on('userleft', function (event) { 
+			var userID = event.userID
 			chatWindow.append(`
 				<div class="chat system-message">
-					<span class="user-id">${event.userID}</span>
+					<span class="user-id">${userID}</span>
 					has left the conversation.
 				</div>
 			`);
+			userList.children(`[value=${userID}]`).remove();
 		});
 
 		p2p.on('message', function (event) {
-			var text = escapeHTML(event.message);
+			var text = formatAsHTML(event.message);
 			var scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
-			var cssClass, annotation;
+			var annotation;
 			if (event.isPrivate) {
-				cssClass = 'private-msg';
 				annotation = ' (Private)';
 			} else {
-				cssClass = '';
 				annotation = '';
 			}
 			chatWindow.append(`
-				<div class="chat ${cssClass}">
+				<div class="chat">
 					<span class="user-id">${event.userID}${annotation}:</span>
 					<pre>${text}</pre>
 				</div>
@@ -245,12 +263,19 @@ messageBox.on('keydown', function (event) {
 			resizeMessageBox();
 		} else {
 			let textToSend = messageBox.val();
-			let escapedText = escapeHTML(textToSend);
+			let formattedText = formatAsHTML(textToSend);
 			let scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
+			let destination = escapeHTML(userList.val());
+			let annotation;
+			if (destination === 'everyone') {
+				annotation = '';
+			} else {
+				annotation = ` (to ${destination})`;
+			}
 			chatWindow.append(`
 				<div class="chat">
-					<span class="user-id">${myUserID}:</span>
-					<pre>${escapedText}</pre>
+					<span class="user-id">${myUserID}${annotation}:</span>
+					<pre>${formattedText}</pre>
 				</div>
 			`);
 			messageBox.val('');
@@ -258,7 +283,11 @@ messageBox.on('keydown', function (event) {
 			if (scrolledToBottom) {
 				chatWindow.scrollTop(chatWindow[0].scrollHeight);
 			}
-			p2p.send(textToSend);
+			if (destination === 'everyone') {
+				p2p.send(textToSend);
+			} else {
+				p2p.sendPrivate(destination, textToSend);
+			}
 		}
 	}
 });

@@ -17,11 +17,29 @@
  *	* Add voice and video.
  */
 
+const ESCAPE_MAP = {
+	'&': '&amp;',
+	'<': '&lt;',
+	'>': '&gt;',
+	'"': '&quot;',
+	"'": '&#39;'
+};
+
+function escapeHTML(input) {
+	if (input) {
+		return input.replace(/[&<>"']/g, function (match) {
+			return ESCAPE_MAP[match];
+		});
+	} else {
+		return input;
+	}
+}
+
 function P2P(userID, onError, options) {
 	var connections = new Map();
 	var pending = new Map();
 	var peersToUsers = new Map();
-	var usersToPeers = new Map();
+	var usersToPeers = new Map(); //user IDs are escaped.
 	var acceptedUsers = new Set();
 	var rejectedUsers = new Set();
 	var peer, sessionID;
@@ -91,13 +109,20 @@ function P2P(userID, onError, options) {
 			}
 			break;
 		case MsgType.IDENTIFY:
-			peersToUsers.set(this.peer, message.data);
-			usersToPeers.set(message.data, this.peer);
+			var remoteUserID = message.data;
+			var escapedUserID = escapeHTML(remoteUserID);
+			peersToUsers.set(this.peer, remoteUserID);
+			usersToPeers.set(escapedUserID, this.peer);
+			var event = new jQuery.Event('userpresent', {
+				sessionID: sessionID,
+				userID: escapedUserID
+			});
+			$(me).triggerHandler(event);
 			break;
 		default:
 			var event = new jQuery.Event('message', {
 				sessionID: sessionID,
-				userID: getUserID(this),
+				userID: escapeHTML(getUserID(this)),
 				isPrivate: message.type === MsgType.PRIVATE_MSG,
 				message: message.data
 			});
@@ -118,7 +143,7 @@ function P2P(userID, onError, options) {
 
 		var event = new jQuery.Event('userleft', {
 			sessionID: sessionID,
-			userID: disconnectedUser
+			userID: escapeHTML(disconnectedUser)
 		});
 		$(me).triggerHandler(event);
 	}
@@ -189,12 +214,12 @@ function P2P(userID, onError, options) {
 				}
 
 				var peerName = connection.peer;
-				var existingUserID = peersToUsers.get(peerName);
+				var existingUserID = escapeHTML(peersToUsers.get(peerName));
 				if (existingUserID !== undefined) {
 					usersToPeers.delete(existingUserID);
 				}
 				peersToUsers.set(peerName, newUserID);
-				usersToPeers.set(newUserID, peerName);
+				usersToPeers.set(escapeHTML(newUserID), peerName);
 
 				pending.set(peerName, connection);
 				connection.on('error', onError);
@@ -204,14 +229,14 @@ function P2P(userID, onError, options) {
 				} else {
 					connection.on('close', function () {
 						pending.delete(this.peer);
-						peersToUsers.delete(this.label);
-						usersToPeers.delete(this.peer);
+						peersToUsers.delete(this.peer);
+						usersToPeers.delete(escapeHTML(this.label));
 					});
 
 					if (existingUserID === undefined) {
 						var event = new jQuery.Event('joinrequest', {
 							sessionID: sessionID,
-							userID: connection.label
+							userID: escapeHTML(connection.label)
 						});
 						$(me).triggerHandler(event);
 					}
@@ -222,7 +247,7 @@ function P2P(userID, onError, options) {
 
 	this.connect = function(sessionIDToJoin) {
 		var firstConnection;
-		sessionID = sessionIDToJoin;
+		sessionID = escapeHTML(sessionIDToJoin);
 		var newPeerNeeded = (peer === undefined || peer.disconnected);
 
 		if (sessionID !== undefined && (newPeerNeeded || peer.id !== sessionID)) {
@@ -254,16 +279,16 @@ function P2P(userID, onError, options) {
 							var newUserID = connection.label;
 							connections.set(peerName, connection);
 							peersToUsers.set(peerName, newUserID);
-							usersToPeers.set(newUserID, peerName);
+							usersToPeers.set(escapeHTML(newUserID), peerName);
 							sendIdentity(connection);
 
 							connection.on('data', dataReceived);
 							connection.on('error', onError);
 							connection.on('close', connectionClosed);
 
-							var event = new jQuery.Event('userjoined', {
+							var event = new jQuery.Event('userpresent', {
 								sessionID: sessionID,
-								userID: newUserID
+								userID: escapeHTML(newUserID)
 							});
 							$(me).triggerHandler(event);
 						} else {
@@ -315,7 +340,7 @@ function P2P(userID, onError, options) {
 		});
 		sendIdentity(connection);
 
-		var event = new jQuery.Event('userjoined', {
+		var event = new jQuery.Event('userpresent', {
 			sessionID: sessionID,
 			userID: newUserID
 		});
