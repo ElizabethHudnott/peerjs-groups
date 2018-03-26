@@ -33,7 +33,7 @@
 							<label for="session-id">Chat Room Name:</label>
 						</th>
 						<td>
-							<input type="text" id="session-id" pattern="^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$"/>
+							<input type="text" id="session-id" pattern="^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$" title="Please enter a room name that only uses English letters, numbers, spaces, _ or - and begins and ends with a letter or a number."/>
 						</td>
 					</tr>
 					<tr class="login-detail">
@@ -41,7 +41,7 @@
 							<label for="user-id">User ID:</label>
 						</th>
 						<td>
-							<input type="text" id="user-id" pattern="^\S" required="required"/>
+							<input type="text" id="user-id" pattern="^\S.*" required="required" title="Please enter a user ID that contains some letters."/>
 						</td>
 					</tr>
 					<tr>

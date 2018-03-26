@@ -269,26 +269,7 @@ messageBox.on('keydown', function (event) {
 
 {
 	let sessionIDInURL = getParameterByName('room');
-	let sessionIDField = $('#session-id');
-
-	sessionIDField.on('input', function(event) {
-		var field = event.target;
-		field.setCustomValidity('');
-		if (field.validity.patternMismatch) {
-			field.setCustomValidity('Room names can only contain Latin letters, numerals 0-9, spaces, _ and - and must begin and end with a letter or a numeral.');
-		}
-	});
-
-	$('#user-id').on('input', function(event) {
-		var field = event.target;
-		field.setCustomValidity('');
-		if (field.validity.patternMismatch) {
-			field.setCustomValidity('User ID cannot be blank.');
-		}
-	});
-
 	if (sessionIDInURL) {
-		sessionIDField.val(sessionIDInURL);
-		sessionIDField.trigger('input');
+		$('#session-id').val(sessionIDInURL);
 	}
 }
