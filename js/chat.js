@@ -118,6 +118,8 @@ p2p.on('connected', function (event) {
 });
 
 p2p.on('joined', function (event) {
+	messageBox[0].focus();
+
 	$('#pending-join-alert').remove();
 	var alert = $(`
 		<div class="alert alert-success alert-dismissible">
@@ -271,5 +273,8 @@ messageBox.on('keydown', function (event) {
 	let sessionIDInURL = getParameterByName('room');
 	if (sessionIDInURL) {
 		$('#session-id').val(sessionIDInURL);
+		document.getElementById('user-id').focus();
+	} else {
+		document.getElementById('session-id').focus();		
 	}
 }
