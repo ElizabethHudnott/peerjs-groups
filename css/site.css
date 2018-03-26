@@ -4,6 +4,10 @@ button:disabled img {
 	filter: grayscale(1);
 }
 
+pre {
+	font-size: 100%;
+}
+
 .btn-border {
 	border-color: DarkGray;
 }

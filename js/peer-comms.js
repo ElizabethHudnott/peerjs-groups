@@ -86,7 +86,7 @@ function P2P(onError, options) {
 	}
 
 	function send(message) {
-		for (let connection of connections.values()) {
+		for (const connection of connections.values()) {
 			connection.send(message);
 		}
 	};
@@ -103,7 +103,7 @@ function P2P(onError, options) {
 		switch (message.type) {
 		case MsgType.PEER_LIST:
 			if (this.peer === sessionID) {
-				for (let peerName of message.data) {
+				for (const peerName of message.data) {
 					connectTo(peerName);
 				}
 				sessionEntered();
@@ -161,7 +161,7 @@ function P2P(onError, options) {
 	}
 
 	function disconnect() {
-		for (let connection of connections.values()) {
+		for (const connection of connections.values()) {
 			connection.off('close', connectionClosed);
 		}
 		peer.destroy();

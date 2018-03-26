@@ -42,8 +42,8 @@ textarea {
 
 .chat pre {
 	display: inline;
-	font-family: sans-serif;
-	white-space: pre-line;
+	font-family: var(--font-family-sans-serif);
+	white-space: pre-wrap;
 }
 
 .system-message {

@@ -266,6 +266,43 @@ messageBox.on('keydown', function (event) {
 				p2p.sendPrivate(destination, textToSend);
 			}
 		}
+	} else if (event.key === 'Tab') {
+		let start = messageBox[0].selectionStart;
+		let end = messageBox[0].selectionEnd;
+		let currentValue = messageBox.val();
+		let before = currentValue.slice(0, start);
+		let after = currentValue.slice(end);
+		if (start === end) {
+			if (!event.shiftKey) {
+				event.preventDefault();
+				messageBox.val(before + '\t' + after);
+				messageBox[0].selectionStart = start + 1;
+				messageBox[0].selectionEnd = start + 1;				
+			}
+		} else {
+			event.preventDefault();
+			let selection = currentValue.slice(start, end + 1);
+			let lines = selection.split('\n');
+			let newValue;
+			if (event.shiftKey) {
+				let allLinesTabbed = lines.every(function (line) {
+					return line[0] === '\t' || line === '';
+				});
+				if (allLinesTabbed) {
+					let newLines = lines.map(function (line) {
+						return line.slice(1);
+					});
+					newValue = before + newLines.join('\n') + after;
+				} else {
+					return;
+				}
+			} else {
+				newValue = before + '\t' + lines.join('\n\t') + after;
+			}
+			messageBox.val(newValue);
+			messageBox[0].selectionStart = start;
+			messageBox[0].selectionEnd = start + newValue.length;
+		}
 	}
 });
 
