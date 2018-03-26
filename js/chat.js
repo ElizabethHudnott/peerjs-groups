@@ -68,6 +68,7 @@ connectButton.on('click', function (event) {
 	alertArea.html('');
 
 	if (connected) {
+		event.preventDefault();
 		p2p.disconnect();
 		disconnected();
 		chatWindow.append(`
@@ -77,16 +78,22 @@ connectButton.on('click', function (event) {
 			</div>
 		`);
 	} else {
-		connected = true;
-		$('.login-detail').slideUp();
-		connectButton.html('Disconnect');
-		connectButton.addClass('btn-secondary');
-		connectButton.removeClass('btn-primary');
+		if (document.getElementById('login-form').checkValidity()) {
+			event.preventDefault();
+			connected = true;
+			$('.login-detail').slideUp();
+			connectButton.html('Disconnect');
+			connectButton.addClass('btn-secondary');
+			connectButton.removeClass('btn-primary');
 
-		myUserID = $('#user-id').val();
-		var sessionID = $('#session-id').val();
-		p2p.connect(sessionID, myUserID);
-
+			myUserID = $('#user-id').val();
+			myUserID = myUserID.replace(/\s{2,}/g, ' ').replace(/\s$/, '');
+			var sessionID = $('#session-id').val();
+			if (sessionID === '') {
+				sessionID = undefined;
+			}
+			p2p.connect(sessionID, myUserID);
+		}
 	} // end if connected else not connected
 });
 
@@ -148,9 +155,13 @@ p2p.on('ejected', function (event) {
 });
 
 p2p.on('joinrequest', function (event) {
-	joinRequests.push(event.userID);
-	if (joinRequests.length == 1) {
-		processJoinRequest();
+	if (event.userID === 'everyone') {
+		p2p.rejectUser(userID);
+	} else {
+		joinRequests.push(event.userID);
+		if (joinRequests.length == 1) {
+			processJoinRequest();
+		}
 	}
 });
 
@@ -258,7 +269,26 @@ messageBox.on('keydown', function (event) {
 
 {
 	let sessionIDInURL = getParameterByName('room');
+	let sessionIDField = $('#session-id');
+
+	sessionIDField.on('input', function(event) {
+		var field = event.target;
+		field.setCustomValidity('');
+		if (field.validity.patternMismatch) {
+			field.setCustomValidity('Room names can only contain Latin letters, numerals 0-9, spaces, _ and - and must begin and end with a letter or a numeral.');
+		}
+	});
+
+	$('#user-id').on('input', function(event) {
+		var field = event.target;
+		field.setCustomValidity('');
+		if (field.validity.patternMismatch) {
+			field.setCustomValidity('User ID cannot be blank.');
+		}
+	});
+
 	if (sessionIDInURL) {
-		$('#session-id').val(sessionIDInURL);
+		sessionIDField.val(sessionIDInURL);
+		sessionIDField.trigger('input');
 	}
 }

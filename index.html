@@ -26,28 +26,31 @@
 
 			<div id="alerts"></div>
 
-			<table class="mx-auto mb-2">
-				<tr class="login-detail">
-					<th>
-						<label for="session-id">Chat Room Name:</label>
-					</th>
-					<td>
-						<input type="text" id="session-id"/>
-					</td>
-				</tr>
-				<tr class="login-detail">
-					<th>
-						<label for="user-id">User ID:</label>
-					</th>
-					<td>
-						<input type="text" id="user-id"/>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="2">
-					<button type="button" id="connect-btn" class="btn btn-primary btn-block">Connect</button>
-				</tr>
-			</table>
+			<form class="mx-auto mb-2" id="login-form">
+				<table>
+					<tr class="login-detail">
+						<th>
+							<label for="session-id">Chat Room Name:</label>
+						</th>
+						<td>
+							<input type="text" id="session-id" pattern="^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$"/>
+						</td>
+					</tr>
+					<tr class="login-detail">
+						<th>
+							<label for="user-id">User ID:</label>
+						</th>
+						<td>
+							<input type="text" id="user-id" pattern="^\S" required="required"/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<button type="submit" id="connect-btn" class="btn btn-primary btn-block">Connect</button>
+						</td>
+					</tr>
+				</table>
+			</form>
 			<div id="chat" class="my-1"></div>
 			<div class="bg-light pt-2 px-1">
 				<span class="align-middle px-1">
