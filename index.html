@@ -19,7 +19,12 @@
 					A demonstration of browser to browser communication using
 					<a href="http://peerjs.com" target="_blank">Peer.js</a>.
 				</p>
+				<h4>
+					<span class="badge badge-dark" id="session-badge" style="visibility: hidden;">nothing</span>
+				</h4>
 			</div>
+
+			<div id="alerts"></div>
 
 			<table class="mx-auto mb-2">
 				<tr class="login-detail">
@@ -51,7 +56,7 @@
 						<option value="everyone">Everyone</option>
 					</select>,
 				</span>
-				<button id="ban-user-btn" style="display: none;" disabled="disabled"><img src="img/ui/ban-user.png" alt="Ban user"/></button>
+				<button id="ban-user-btn" style="display: none;" disabled="disabled" title="Ban user" class="btn btn-border"><img src="img/ui/ban-user.png"/></button>
 			</div>
 			<div class="bg-light px-1 pt-1">
 				<textarea id="message" rows="1" class="w-100" placeholder="Type a message and press enter."></textarea>
@@ -113,6 +118,8 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
 		<script src="js/peer-comms.js"></script>
+		<script src="js/web-util.js"></script>
+		<script src="js/chat-util.js"></script>
 		<script src="js/chat.js"></script>
 	</body>
 </html>

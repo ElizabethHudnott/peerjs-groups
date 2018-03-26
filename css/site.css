@@ -4,6 +4,10 @@ button:disabled img {
 	filter: grayscale(1);
 }
 
+.btn-border {
+	border-color: DarkGray;
+}
+
 .display-3 {
 	font-family: "Open Sans", sans-serif;
 }

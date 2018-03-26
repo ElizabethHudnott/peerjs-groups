@@ -1,6 +1,8 @@
 "use strict";
 const peerAPIKey = 'spknmd8wnib2o6r';
 
+var sessionBadge = $('#session-badge');
+var alertArea = $('#alerts');
 var connectButton = $('#connect-btn');
 var chatWindow = $('#chat');
 var userList = $('#user-list');
@@ -30,104 +32,6 @@ var p2p = new P2P(
 );
 var myUserID;
 
-function getParameterByName(name) {
-	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-	var regexS = "[\\?&;]"+name+"=([^&;#]*)";
-	var regex = new RegExp(regexS);
-	var url = window.location.href;
-	var result = regex.exec(url);
-	if (result === null) {
-		return "";
-	} else {
-		return decodeURIComponent(result[1].replace(/\+/g, " "));
-	}
-}
-
-function formatAsHTML(text) {
-	var formatted;
-	formatted = escapeHTML(text);
-	// *emphasis*
-	formatted = formatted.replace(/(^|\s)\*([^\s*][^*]*)\*/g, '$1<strong>$2</strong>');
-	// hyperlinks
-	formatted = formatted.replace(/http(s)?:\/\/[\w$\-.+!*(),;/?=&%~\[\]]+/g, formatURL);
-	// hashtags
-	formatted = formatted.replace(
-		/(^|\s)#(\w{3,})/g,
-		'$1<a href="https://twitter.com/search?src=typd&q=%23$2" target="_blank">#$2</a>'
-	);
-	return formatted;
-}
-
-function formatURL(url) {
-	var punctuation, essentialPunctuation, match, url2, maxWidth;
-	punctuation = url.match(/([,;.?!)]*)$/)[1];
-	if (punctuation === '') {
-		essentialPunctuation = '';
-	} else {
-		url = url.slice(0, -(punctuation.length));
-		essentialPunctuation = punctuation.match(/([?!)].*)?/)[1];
-		if (essentialPunctuation === undefined) {
-			essentialPunctuation = '';
-		}
-	}
-
-	match = url.match(youTubeURL);
-	if (match !== null) {
-		return '<div class="iframe-container">' +
-			'<iframe width="640" height="360" src="https://www.youtube-nocookie.com/embed/' +
-			match[2] +
-			(match[4] === undefined? '' : '?' + match[4]) +
-			'" allow="encrypted-media" allowfullscreen="true"></iframe></div>' +
-			essentialPunctuation;
-	}
-
-	match = url.match(slideShareURL);
-	if (match !== null) {
-		url2 = 'https://www.slideshare.net/' + match[2];
-		maxWidth = Math.floor(chatWindow.width());
-		$.ajax({
-			url:
-				'http://www.slideshare.net/api/oembed/2?url=' + 
-				encodeURIComponent(url2) + 
-				'&maxwidth=' + maxWidth + 
-				'&format=json',
-			dataType: 'jsonp',
-			success: function (data) {
-				var width = Math.min(maxWidth, Math.max(629, data.width));
-				var height = Math.round(width * data.height / data.width);
-				var match = data.html.match(/\ssrc=["']?([^"'>\s]*)/);
-				$('.iframe-container[data-oembed="' + url2 + '"]').html(`
-					<iframe
-						src="${match[1]}"
-						width="${width}"
-						height="${height}"
-						allowfullscreen="true"
-					>
-					</iframe>
-					<figcaption>
-						<a href="${url2}" target="_blank">${data.title}</a>
-					</figcaption>
-				`);
-			}
-		});
-		return '<figure class="iframe-container" data-oembed="' +
-			url2 +
-			'"></figure>' +
-			essentialPunctuation;
-	}
-
-	if (imageFileExtensions.test(url)) {
-		return `<a href="${url}" target="_blank"><img src="${url}"/></a>${essentialPunctuation}`;
-	}
-
-	return '<a href="' + 
-		url +
-		'" target="_blank">' +
-		url.replace(/[&;].*/, '&amp;&hellip;') +
-		'</a>' +
-		punctuation;
-}
-
 function processJoinRequest() {
 	if (joinRequests.length == 0) {
 		joinRequestModal.modal('hide');
@@ -152,6 +56,7 @@ $('#reject-join').on('click', function (event) {
 
 function disconnected() {
 	connected = false;
+	sessionBadge.css('visibility', 'hidden');
 	connectButton.html('Connect');
 	connectButton.addClass('btn-primary');
 	connectButton.removeClass('btn-secondary');
@@ -160,6 +65,8 @@ function disconnected() {
 }
 
 connectButton.on('click', function (event) {
+	alertArea.html('');
+
 	if (connected) {
 		p2p.disconnect();
 		disconnected();
@@ -196,27 +103,44 @@ $('#ban-user-btn').on('click', function (event) {
 });
 
 p2p.on('connected', function (event) {
-	chatWindow.append(`
-		<div class="chat system-message">
-			Connected to ${event.sessionID}. Waiting for permission to join the conversation.
+	alertArea.append(`
+		<div class="alert alert-info" id="pending-join-alert">
+			Connected to ${event.sessionID}. Waiting for permission to join the conversation&hellip;
 		</div>
 	`);
 });
 
 p2p.on('joined', function (event) {
+	$('#pending-join-alert').remove();
+	var alert = $(`
+		<div class="alert alert-success alert-dismissible">
+			You're now part of the conversation "${event.sessionID}".
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+  		</div>
+	`);
+	alertArea.append(alert);
+	fadeOutAndRemove(alert);
+
 	chatWindow.append(`
 		<div class="chat system-message">
-			You are now part of the conversation "${event.sessionID}".
+			<span class="user-id">${myUserID}</span> is present.
 		</div>
 	`);
+
+	sessionBadge.html('<span class="sr-only">The current session name is </span>' + event.sessionID);
+	sessionBadge.css('visibility', 'visible');
+
 	if (event.isAdmin) {
 		$('#ban-user-btn').show();
 	}
 });
 
 p2p.on('ejected', function (event) {
-	chatWindow.append(`
-		<div class="chat system-message">
+	$('#pending-join-alert').remove();
+	alertArea.append(`
+		<div class="alert alert-warning">
 			${event.message}
 		</div>
 	`);

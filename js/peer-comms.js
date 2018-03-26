@@ -230,7 +230,7 @@ function P2P(onError, options) {
 					rejectConnection(
 						connection,
 						ErrorType.PROHIBITED,
-						'You are banned from this conversation.'
+						`You\'ve been banned from the conversation "${sessionID}".`
 					);
 					return;
 				}
@@ -244,7 +244,7 @@ function P2P(onError, options) {
 					rejectConnection(
 						connection,
 						ErrorType.DUPLICATE_USER_ID,
-						`User ID "${newUserID}" has already been taken.`
+						`User ID "${newUserID}" is already taken.`
 					);
 					return;
 				}
@@ -406,7 +406,7 @@ function P2P(onError, options) {
 		rejectConnection(
 			connection,
 			ErrorType.PROHIBITED,
-			'You are banned from this conversation.'
+			`You've been banned from the conversation "${sessionID}".`
 		);
 	}
 
