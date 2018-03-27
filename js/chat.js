@@ -7,10 +7,12 @@ var connectButton = $('#connect-btn');
 var chatWindow = $('#chat');
 var userList = $('#user-list');
 var messageBox = $('#message');
-var joinRequestModal = $('#join-request-dialog');
-var confirmationModal = $('#confirmation-dialog');
+var modalDisplayed = false;
+var joinRequestModal = $('#join-request-modal');
+var confirmationModal = $('#confirmation-modal');
 var confirmationTitle = $('#confirm-action-title');
-var confirmationAction = $('#confirm-action-description');
+var confirmationActionText = $('#confirm-action-description');
+var confirmationAction;
 
 const imageFileExtensions = /\.(bmp|apng|gif|ico|jpg|jpeg|png|svg|webp)$/;
 const youTubeURL = /^http(s)?:\/\/www.youtube.com\/watch\?v=([^&]+)(&(.*))?$/;
@@ -33,6 +35,10 @@ var p2p = new P2P(
 var myUserID;
 
 function processJoinRequest() {
+	if (modalDisplayed) {
+		return;
+	}
+
 	if (joinRequests.length == 0) {
 		joinRequestModal.modal('hide');
 	} else {
@@ -105,8 +111,19 @@ $('#ban-user-btn').on('click', function (event) {
 	var userToBan = userList.val();
 	var username = userList.children(`[value=${userToBan}]`).html();
 	confirmationTitle.html('Ban ' + username);
-	confirmationAction.html(`ban <span class="user-id">${username}</span>`);
+	confirmationActionText.html(`ban <span class="user-id">${username}</span>`);
+	confirmationAction = 'ban-user';
 	confirmationModal.modal('show');
+});
+
+$('#confirm-action-btn').on('click', function (event) {
+	switch (confirmationAction) {
+	case 'ban-user':
+		let userToBan = userList.val();
+		p2p.rejectUser(userToBan);
+		break;
+	}
+	confirmationModal.modal('hide');
 });
 
 p2p.on('connected', function (event) {
@@ -304,6 +321,15 @@ messageBox.on('keydown', function (event) {
 			messageBox[0].selectionEnd = start + newValue.length;
 		}
 	}
+});
+
+$('.modal:not(#join-request-modal)').on('show.bs.modal', function (event) {
+	modalDisplayed = true;
+});
+
+$('.modal:not(#join-request-modal)').on('hidden.bs.modal', function (event) {
+	modalDisplayed = false;
+	processJoinRequest();
 });
 
 {

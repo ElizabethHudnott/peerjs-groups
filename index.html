@@ -67,11 +67,11 @@
 		</div>
 
 <!-- Modal dialog for accepting new users. -->
-		<div class="modal fade" id="join-request-dialog" tabindex="-1" role="dialog">
+		<div class="modal fade" id="join-request-modal" tabindex="-1" role="dialog" aria-labelledby="join-request-modal-title" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title">
+						<h5 class="modal-title" id="join-request-modal-title">
 							<span class="requesting-user-id"></span>
 							Wants to Join the Conversation
 						</h5>
@@ -92,11 +92,11 @@
 		</div>
 
 <!-- Modal dialog for confirming an action -->
-		<div class="modal fade" id="confirmation-dialog" tabindex="-1" role="dialog">
+		<div class="modal fade" id="confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="confirmation-modal-title" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title">
+						<h5 class="modal-title" id="confirmation-modal-title">
 							<span id="confirm-action-title"></span>?
 						</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -110,7 +110,7 @@
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-						<button type="button" class="btn btn-danger" id="confirm-action">Confirm</button>
+						<button type="button" class="btn btn-danger" id="confirm-action-btn">Confirm</button>
 					</div>
 				</div>
 			</div>
