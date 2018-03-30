@@ -17,7 +17,7 @@
 				<hr class="my-2"/>
 				<p class="lead">
 					A demonstration of browser to browser communication using
-					<a href="http://peerjs.com" target="_blank">Peer.js</a>.
+					<a href="https://github.com/peers" target="_blank">Peer.js</a>.
 				</p>
 				<h5>
 					<span class="badge badge-dark" id="session-badge" style="visibility: hidden;">nothing</span>
@@ -28,6 +28,14 @@
 
 			<form class="mx-auto mb-2" id="login-form">
 				<table>
+					<tr class="login-detail">
+						<th>
+							<label for="server-url">Signalling Server:</label>
+						</th>
+						<td>
+							<input type="text" id="server-url" value="localhost:9000" pattern="^(ws(s)?://)?([^@]*@)?[^/:]+(/[^:]*)?(:\d+)?$" title="Please enter a valid URL."/>
+						</td>
+					</tr>
 					<tr class="login-detail">
 						<th>
 							<label for="session-id">Chat Room Name:</label>
