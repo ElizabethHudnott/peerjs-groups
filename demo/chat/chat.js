@@ -1,4 +1,5 @@
 "use strict";
+const URL_PARAMETERS = new URLSearchParams(document.location.search.substring(1));
 var sessionBadge = $('#session-badge');
 var alertArea = $('#alerts');
 var connectButton = $('#connect-btn');
@@ -347,7 +348,7 @@ $('.modal:not(#join-request-modal)').on('hidden.bs.modal', function (event) {
 });
 
 {
-	let sessionIDInURL = getParameterByName('room');
+	let sessionIDInURL = URL_PARAMETERS.get('room');
 	if (sessionIDInURL) {
 		$('#session-id').val(sessionIDInURL);
 		document.getElementById('user-id').focus();
