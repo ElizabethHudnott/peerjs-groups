@@ -139,7 +139,7 @@ function initializeNetworking() {
 		connectionOptions
 	);
 
-	p2p.on('connected', function (event) {
+	p2p.addEventListener('connected', function (event) {
 		alertArea.append(`
 			<div class="alert alert-info" id="pending-join-alert">
 				Connected to ${event.sessionID}. Waiting for permission to join the conversation&hellip;
@@ -147,7 +147,7 @@ function initializeNetworking() {
 		`);
 	});
 
-	p2p.on('joined', function (event) {
+	p2p.addEventListener('joined', function (event) {
 		messageBox[0].focus();
 
 		$('#pending-join-alert').remove();
@@ -176,7 +176,7 @@ function initializeNetworking() {
 		}
 	});
 
-	p2p.on('ejected', function (event) {
+	p2p.addEventListener('ejected', function (event) {
 		$('#pending-join-alert').remove();
 		alertArea.append(`
 			<div class="alert alert-warning">
@@ -186,7 +186,7 @@ function initializeNetworking() {
 		disconnected();
 	});
 
-	p2p.on('joinrequest', function (event) {
+	p2p.addEventListener('joinrequest', function (event) {
 		if (event.userID === 'everyone') {
 			p2p.rejectUser(userID);
 		} else {
@@ -197,7 +197,7 @@ function initializeNetworking() {
 		}
 	});
 
-	p2p.on('userpresent', function (event) {
+	p2p.addEventListener('userpresent', function (event) {
 		var userID = event.userID;
 		chatWindow.append(`
 			<div class="chat system-message">
@@ -221,7 +221,7 @@ function initializeNetworking() {
 		}
 	});
 
-	p2p.on('userleft', function (event) { 
+	p2p.addEventListener('userleft', function (event) { 
 		var userID = event.userID
 		chatWindow.append(`
 			<div class="chat system-message">
@@ -232,7 +232,7 @@ function initializeNetworking() {
 		userList.children(`[value=${userID}]`).remove();
 	});
 
-	p2p.on('message', function (event) {
+	p2p.addEventListener('message', function (event) {
 		var text = formatAsHTML(event.message);
 		var scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
 		var annotation;
