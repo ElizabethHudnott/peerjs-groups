@@ -24,8 +24,8 @@ const ESCAPE_MAP = {
 };
 
 function escapeHTML(input) {
-	if (input) {
-		return input.replace(/[&<>"']/g, function (match) {
+	if (input !== undefined) {
+		return String(input).replace(/[&<>"']/g, function (match) {
 			return ESCAPE_MAP[match];
 		});
 	} else {
