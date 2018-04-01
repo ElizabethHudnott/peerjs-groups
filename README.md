@@ -3,7 +3,7 @@ Using Peer.js Groups, a web browser on one machine can send encrypted data to (a
 
 Peer.js Groups is a thin layer of abstraction over the [Peer.js](https://github.com/peers/peerjs) library that allows peers to easily find and communicate with other peers that share an interest in a common group ID tag (e.g. a chat room name or a gaming session name).
 
-## Where Peeer.js Groups Differs from [EasyRTC](https://easyrtc.com), [SimpleRTC](https://github.com/andyet/SimpleWebRTC), [RTCMultiConnection](https://github.com/muaz-khan/RTCMultiConnection), etc.
+## How Peeer.js Groups Differs from [EasyRTC](https://easyrtc.com), [SimpleRTC](https://github.com/andyet/SimpleWebRTC), [RTCMultiConnection](https://github.com/muaz-khan/RTCMultiConnection), etc.
 Great projects though the others are, I decided to roll my own. This was initially primarily for the benefit of my own learning. But as this project develops I'd like it to stick to a few principles that I've developed, and these principles perhaps distinguish this project from the competition (aside from this project being in the very early experimental stages!).
 
 1. A focus on data connections as the first priority rather than audio or video.
