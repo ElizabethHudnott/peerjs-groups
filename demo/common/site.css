@@ -4,8 +4,17 @@ button:disabled img {
 	filter: grayscale(1);
 }
 
+label {
+	margin-bottom: 0.25rem;
+	margin-top: 0.25rem;
+}
+
 pre {
 	font-size: 100%;
+}
+
+.nav-item {
+	font-weight: bold;
 }
 
 .btn-border {
@@ -17,7 +26,7 @@ pre {
 }
 
 .jumbotron {
-	padding-top: 2rem;
+	padding-top: 0.5rem;
 	padding-bottom: 2rem;
 }
 

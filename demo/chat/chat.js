@@ -172,7 +172,7 @@ function initializeNetworking() {
 		sessionBadge.html('<span class="sr-only">The current session name is </span>' + event.sessionID);
 		sessionBadge.css('visibility', 'visible');
 
-		if (event.isAdmin) {
+		if (event.administrator) {
 			$('#ban-user-btn').show();
 		}
 	});
