@@ -32,18 +32,20 @@ A TURN server enables a peer A to send an encrypted message to a peer B by first
 ## Server Installation
 1) Install [Node.js](https://nodejs.org).
 2) Install the [Peer.js server](https://github.com/peers/peerjs-server) using the Terminal/Command Prompt.
-
-`npm install peer`
-
+````
+npm install peer
+````
 3) Start the server.
 ````
 cd node_modules/peer/bin
-peerjs -p 80
+peerjs -p 9000
 ````
 
 To communicate with peers across the internet (rather than just your local network) you'll also need to configure port forwarding on your router and you'll probably want to configure a domain name too. Running the server in the cloud using a service like [Heroku](https://www.heroku.com/deploy/?template=https://github.com/peers/peerjs-server) is probably a better a option.
 
 ## Client-Side Code
+See the ["Hello World!" demo](https://github.com/ElizabethHudnott/peerjs-groups/tree/master/demo/hello-world) for a complete example.
+
 1) Link to the JavaScript files from your HTML.
 ````
 <script src="peer.min.js"></script>
@@ -54,6 +56,7 @@ To communicate with peers across the internet (rather than just your local netwo
 ````javascript
 var group = new PeerGroup(function (error) {
   console.error(error);
-  //Put some better error handling code in here...
+  //TODO Put some better error handling code in here...
  }, {host: 'localhost'});
 ````
+To be continued...
