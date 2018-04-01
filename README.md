@@ -1,5 +1,5 @@
 # Peer.js Groups
-Using Peer.js Groups, a web browser on one machine can send encrypted data to (and receive encryped data from) other web browsers spread across the internet without needing to send the data via an intermediate server. The data sent and received can be any JavaScript objects.
+Using Peer.js Groups, a web browser on one machine can send encrypted data to (and receive encryped data from) other web browsers spread across the internet without needing to send the data via an intermediate server (in most cases). The data sent and received can be any JavaScript objects (or any other JavaScript values such as strings).
 
 Peer.js Groups is a thin layer of abstraction over the [Peer.js](https://github.com/peers/peerjs) library that allows peers to easily find and communicate with other peers that share an interest in a common group ID tag (e.g. a chat room name or a gaming session name).
 
