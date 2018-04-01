@@ -19,7 +19,7 @@ const slideShareURL = /http(s)?:\/\/www.slideshare.net\/([\w-]+\/[\w-]+)((\/?$)|
 
 var joinRequests = [];
 var connected = false;
-var p2p, myUserID;
+var group, myUserID;
 
 function processJoinRequest() {
 	if (modalDisplayed) {
@@ -37,13 +37,13 @@ function processJoinRequest() {
 
 $('#accept-join').on('click', function (event) {
 	var userID = joinRequests.shift();
-	p2p.acceptUser(userID);
+	group.acceptUser(userID);
 	processJoinRequest();
 });
 
 $('#reject-join').on('click', function (event) {
 	var userID = joinRequests.shift();
-	p2p.rejectUser(userID);
+	group.rejectUser(userID);
 	processJoinRequest();
 });
 
@@ -62,7 +62,7 @@ connectButton.on('click', function (event) {
 
 	if (connected) {
 		event.preventDefault();
-		p2p.disconnect();
+		group.disconnect();
 		disconnected();
 		chatWindow.append(`
 			<div class="chat system-message">
@@ -86,7 +86,7 @@ connectButton.on('click', function (event) {
 			if (sessionID === '') {
 				sessionID = undefined;
 			}
-			p2p.connect(sessionID, myUserID);
+			group.connect(sessionID, myUserID);
 		}
 	} // end if connected else not connected
 });
@@ -108,7 +108,7 @@ $('#confirm-action-btn').on('click', function (event) {
 	switch (confirmationAction) {
 	case 'ban-user':
 		let userToBan = userList.val();
-		p2p.rejectUser(userToBan);
+		group.rejectUser(userToBan);
 		break;
 	}
 	confirmationModal.modal('hide');
@@ -127,7 +127,7 @@ function initializeNetworking() {
 	if (url[2] !== undefined) {
 		connectionOptions.key = url[2];
 	}
-	p2p = new P2P(
+	group = new PeerGroup(
 		function (error) {
 			chatWindow.append(`
 				<div class="chat system-message">
@@ -140,7 +140,7 @@ function initializeNetworking() {
 		connectionOptions
 	);
 
-	p2p.addEventListener('connected', function (event) {
+	group.addEventListener('connected', function (event) {
 		alertArea.append(`
 			<div class="alert alert-info" id="pending-join-alert">
 				Connected to ${event.sessionID}. Waiting for permission to join the conversation&hellip;
@@ -148,7 +148,7 @@ function initializeNetworking() {
 		`);
 	});
 
-	p2p.addEventListener('joined', function (event) {
+	group.addEventListener('joined', function (event) {
 		messageBox[0].focus();
 
 		$('#pending-join-alert').remove();
@@ -177,7 +177,7 @@ function initializeNetworking() {
 		}
 	});
 
-	p2p.addEventListener('ejected', function (event) {
+	group.addEventListener('ejected', function (event) {
 		$('#pending-join-alert').remove();
 		alertArea.append(`
 			<div class="alert alert-warning">
@@ -187,9 +187,9 @@ function initializeNetworking() {
 		disconnected();
 	});
 
-	p2p.addEventListener('joinrequest', function (event) {
+	group.addEventListener('joinrequest', function (event) {
 		if (event.userID === 'everyone') {
-			p2p.rejectUser(userID);
+			group.rejectUser(userID);
 		} else {
 			joinRequests.push(event.userID);
 			if (joinRequests.length == 1) {
@@ -198,7 +198,7 @@ function initializeNetworking() {
 		}
 	});
 
-	p2p.addEventListener('userpresent', function (event) {
+	group.addEventListener('userpresent', function (event) {
 		var userID = event.userID;
 		chatWindow.append(`
 			<div class="chat system-message">
@@ -222,7 +222,7 @@ function initializeNetworking() {
 		}
 	});
 
-	p2p.addEventListener('userleft', function (event) { 
+	group.addEventListener('userleft', function (event) { 
 		var userID = event.userID
 		chatWindow.append(`
 			<div class="chat system-message">
@@ -233,7 +233,7 @@ function initializeNetworking() {
 		userList.children(`[value=${userID}]`).remove();
 	});
 
-	p2p.addEventListener('message', function (event) {
+	group.addEventListener('message', function (event) {
 		var text = formatAsHTML(event.message);
 		var scrolledToBottom = chatWindow.scrollTop() >= chatWindow[0].scrollHeight - chatWindow.height() - 1;
 		var annotation;
@@ -293,9 +293,9 @@ messageBox.on('keydown', function (event) {
 				chatWindow.scrollTop(chatWindow[0].scrollHeight);
 			}
 			if (destination === 'everyone') {
-				p2p.send(textToSend);
+				group.send(textToSend);
 			} else {
-				p2p.sendPrivate(destination, textToSend);
+				group.sendPrivate(destination, textToSend);
 			}
 		}
 	} else if (event.key === 'Tab') {

@@ -39,7 +39,7 @@ function escapeHTML(input) {
 	}
 }
 
-/**Describes an event fired by a {@link P2P} object.
+/**Describes an event fired by a {@link PeerGroup} object.
 @property {string} sessionID The name of the peer group that the event relates to.
 @property {string} userID The user ID of the peer whose action triggered the event.
 @property {boolean} administrator <code>true</code> if the peer described by the <code>userID</code>
@@ -48,11 +48,11 @@ property is the peer group leader.
 only to this peer and the peer that caused the event (e.g. receiving a private message),
 or <code>false</code> if all members of the peer group are likely aware of the state change.
 @property {any} [message] Additional details that vary according to the type
-of event. Contains application specific data for a <code>message</code> event, and
+of event. Contains application specific data for a <code>message</code> event and
 a textual description (<code>string</code>) for other events.
 */
-class P2PEvent extends Event {
-	/**	Creates a P2PEvent.
+class PeerGroupEvent extends Event {
+	/**	Creates a PeerGroupEvent.
 		@param {string} type The name of the event type.
 		@param {boolean} isAdmin <code>true</code> if the peer identified by the <code>userID</code>
 		property is the peer group leader, and false otherwise.
@@ -68,61 +68,61 @@ class P2PEvent extends Event {
 	}
 }
 
-/**	P2P (project name [Peer.js Groups]{@link https://github.com/ElizabethHudnott/peerjs-groups})
+/**	PeerGroup (project name [Peer.js Groups]{@link https://github.com/ElizabethHudnott/peerjs-groups})
 	is an abstraction layer over the [Peer.js]{@link https://github.com/peers} library
 	that allows peers to easily find and communicate with other peers that share
 	an interest in a common group ID tag (e.g. a chat room name or a gaming session name).
 	@see [Peer constructor in the Peer.js documentation]{@link https://elizabethhudnott.github.io/peerjs-groups/lib/doc/peer.html#peer}
 */
-class P2P extends EventTarget {
-	/**	@event P2P~connected
+class PeerGroup extends EventTarget {
+	/**	@event PeerGroup~connected
 		@description Fired when a peer establishes a connection with the peer
 		group leader (which may be itself). The event is fired on the peer that initiated
 		the connection. The peer doesn't receive any messages addressed to the peer group
-		until after the {@link P2P~event:joined} event has been fired.
-		@type {P2PEvent}
+		until after the {@link PeerGroup~event:joined} event has been fired.
+		@type {PeerGroupEvent}
 	*/
 
-	/**	@event P2P~joined
+	/**	@event PeerGroup~joined
 		@description Fired when the local peer becomes a member of a peer group.
-		@type {P2PEvent}
+		@type {PeerGroupEvent}
 	*/
 
-	/**	@event P2P~userpresent
+	/**	@event PeerGroup~userpresent
 		@description Fired when another peer joins the peer group, or when the local peer
 		joins the peer group and discovers existing members.
-		@type {P2PEvent}
+		@type {PeerGroupEvent}
 	*/
 
-	/**	@event P2P~userleft
+	/**	@event PeerGroup~userleft
 		@description Fired when the connection to another peer is severed.
-		@type {P2PEvent}
+		@type {PeerGroupEvent}
 	*/
 
-	/**	@event P2P~message
+	/**	@event PeerGroup~message
 		@description Fired when this peer receives a message (either addressed to the peer
 		group or private).
-		@type {P2PEvent}
+		@type {PeerGroupEvent}
 	*/
 
-	/**	@event P2P~joinrequest
+	/**	@event PeerGroup~joinrequest
 		@description Fired when this peer is the peer group leader and another peer asks to
 		join the peer group.
-		@type {P2PEvent}
+		@type {PeerGroupEvent}
 	*/
 
-	/**	@event P2P~ejected
+	/**	@event PeerGroup~ejected
 		@description Fired when this peer is refused permission to join the requested peer
 		group or when it's forcibly removed from the peer group.
-		@type {P2PEvent}
+		@type {PeerGroupEvent}
 	*/
 
-	/**@callback P2P~ErrorCallback
+	/**@callback PeerGroup~ErrorCallback
 		@param {Error} error The error that occurred.
 	 */
 
-	/**	Constructs a P2P object.
-		@param {P2P~ErrorCallback} onError A function that will be invoked if a
+	/**	Constructs a PeerGroup object.
+		@param {PeerGroup~ErrorCallback} onError A function that will be invoked if a
 		networking error occurs that Peer.js Groups cannot handle internally.
 		@param {object} options The options passed to the Peer.js server.
 	*/
@@ -174,7 +174,7 @@ class P2P extends EventTarget {
 		*/
 		const MsgType = {
 			/**	Data message. The meaning of the message is defined by your application.
-				The data is forwarded to the application via a {@link P2P~event:message} event.
+				The data is forwarded to the application via a {@link PeerGroup~event:message} event.
 			*/
 			DATA: 1,
 			/**	A message informing the receiving peer of the sending peer's user ID. */
@@ -224,10 +224,10 @@ class P2P extends EventTarget {
 			PROHIBITED: 2
 		};
 
-		/**	Creates a P2PEvent. */
+		/**	Creates a PeerGroupEvent. */
 		function createEvent(type, properties) {
 			var isAdmin = peer.id === sessionID && sessionID !== undefined;
-			return new P2PEvent(type, isAdmin, properties);
+			return new PeerGroupEvent(type, isAdmin, properties);
 		}
 
 		/**	Called when a peer initially establishes a network connection with the peer group leader.
@@ -235,7 +235,7 @@ class P2P extends EventTarget {
 			The new peer does not become a member of the peer group until application
 			accepts the new peer.
 			@param {string} id The name of the peer group.
-			@fires P2P#connected
+			@fires PeerGroup#connected
 		*/
 		function connected(id) {
 			sessionID = id;
@@ -248,7 +248,7 @@ class P2P extends EventTarget {
 		}
 
 		/**	Called when the local peer becomes part of a peer group.
-			@fires P2P#joined
+			@fires PeerGroup#joined
 		*/
 		function sessionEntered() {
 			var event = createEvent('joined', {
@@ -295,9 +295,9 @@ class P2P extends EventTarget {
 
 		/**	Called when this peer receives a message from another peer.
 			@param {Message} message The message received.
-			@fires P2P#userpresent
-			@fires P2P#ejected
-			@fires P2P#message
+			@fires PeerGroup#userpresent
+			@fires PeerGroup#ejected
+			@fires PeerGroup#message
 		*/
 		function dataReceived(message) {
 			var event;
@@ -373,7 +373,7 @@ class P2P extends EventTarget {
 			}
 		}
 
-		/**	Closes all existing connections and resets the state of the P2P object. */
+		/**	Closes all existing connections and resets the state of the PeerGroup object. */
 		function disconnect() {
 			for (const connection of connections.values()) {
 				connection.off('close', connectionClosed);
@@ -692,5 +692,5 @@ class P2P extends EventTarget {
 			}
 		}
 
-	} // End of P2P constructor.
+	} // End of PeerGroup constructor.
 }

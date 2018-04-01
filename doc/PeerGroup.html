@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: P2P</title>
+    <title>JSDoc: Class: PeerGroup</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: P2P</h1>
+    <h1 class="page-title">Class: PeerGroup</h1>
 
     
 
@@ -28,10 +28,10 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>P2P<span class="signature">(onError, options)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>PeerGroup<span class="signature">(onError, options)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">P2P (project name <a href="https://github.com/ElizabethHudnott/peerjs-groups">Peer.js Groups</a>)
-	is an abstraction over the <a href="https://github.com/peers">Peer.js</a> library
+            <div class="class-description">PeerGroup (project name <a href="https://github.com/ElizabethHudnott/peerjs-groups">Peer.js Groups</a>)
+	is an abstraction layer over the <a href="https://github.com/peers">Peer.js</a> library
 	that allows peers to easily find and communicate with other peers that share
 	an interest in a common group ID tag (e.g. a chat room name or a gaming session name).</div>
         
@@ -48,7 +48,7 @@
     
 
     
-    <h4 class="name" id="P2P"><span class="type-signature"></span>new P2P<span class="signature">(onError, options)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="PeerGroup"><span class="type-signature"></span>new PeerGroup<span class="signature">(onError, options)</span><span class="type-signature"></span></h4>
     
 
     
@@ -56,7 +56,7 @@
 
 
 <div class="description">
-    Constructs a P2P object.
+    Constructs a PeerGroup object.
 </div>
 
 
@@ -98,7 +98,7 @@
             <td class="type">
             
                 
-<span class="param-type"><a href="P2P.html#~ErrorCallback">P2P~ErrorCallback</a></span>
+<span class="param-type"><a href="PeerGroup.html#~ErrorCallback">PeerGroup~ErrorCallback</a></span>
 
 
             
@@ -109,7 +109,7 @@
             
 
             <td class="description last">A function that will be invoked if a
-		networking error occurs that P2P cannot handle internally.</td>
+		networking error occurs that Peer.js Groups cannot handle internally.</td>
         </tr>
 
     
@@ -173,7 +173,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line78">line 78</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line77">line 77</a>
     </li></ul></dd>
     
 
@@ -242,7 +242,7 @@
 
 
 <div class="description">
-    Authorizes a new peer to join the peer group.
+    Authorizes a peer to join the peer group.
 </div>
 
 
@@ -294,7 +294,8 @@
 
             
 
-            <td class="description last">The user ID of a peer waiting to join the peer group.</td>
+            <td class="description last">The user ID of a peer (typically one that is waiting
+			to join the peer group).</td>
         </tr>
 
     
@@ -377,7 +378,7 @@
 
 
 <div class="description">
-    Attempts to connect to a peer group, or creates it if it doesn't yet exist.
+    Attempts to connect to a peer group, or creates the group if it doesn't exist yet.
 </div>
 
 
@@ -493,7 +494,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line516">line 516</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line515">line 515</a>
     </li></ul></dd>
     
 
@@ -535,7 +536,7 @@
 
 
 <div class="description">
-    Disconnects from the peer group, if connected to one, or cancels any pending
+    Disconnects from the peer group (if connected to one) or cancels any pending
 			application to join a peer group.
 </div>
 
@@ -580,7 +581,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line602">line 602</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line601">line 601</a>
     </li></ul></dd>
     
 
@@ -622,8 +623,8 @@
 
 
 <div class="description">
-    Rejects a peer's application to join the peer group or removes an existing
-			member from the peer group.
+    Prevents a peer with a given user ID from joining the peer group or removes
+			an existing member from the peer group.
 </div>
 
 
@@ -717,7 +718,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line638">line 638</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line641">line 641</a>
     </li></ul></dd>
     
 
@@ -852,7 +853,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line657">line 657</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line663">line 663</a>
     </li></ul></dd>
     
 
@@ -1010,7 +1011,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line668">line 668</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line674">line 674</a>
     </li></ul></dd>
     
 
@@ -1106,7 +1107,7 @@
 
             
 
-            <td class="description last"></td>
+            <td class="description last">The error that occurred.</td>
         </tr>
 
     
@@ -1147,7 +1148,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line121">line 121</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line120">line 120</a>
     </li></ul></dd>
     
 
@@ -1198,7 +1199,7 @@
     Fired when a peer establishes a connection with the peer
 		group leader (which may be itself). The event is fired on the peer that initiated
 		the connection. The peer doesn't receive any messages addressed to the peer group
-		until after the <a href="P2P.html#~event:joined">P2P~event:joined</a> event has been fired.
+		until after the <a href="PeerGroup.html#~event:joined">PeerGroup~event:joined</a> event has been fired.
 </div>
 
 
@@ -1209,7 +1210,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="P2PEvent.html">P2PEvent</a></span>
+<span class="param-type"><a href="PeerGroupEvent.html">PeerGroupEvent</a></span>
 
 
         </li>
@@ -1252,7 +1253,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line79">line 79</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line78">line 78</a>
     </li></ul></dd>
     
 
@@ -1306,7 +1307,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="P2PEvent.html">P2PEvent</a></span>
+<span class="param-type"><a href="PeerGroupEvent.html">PeerGroupEvent</a></span>
 
 
         </li>
@@ -1349,7 +1350,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line115">line 115</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line114">line 114</a>
     </li></ul></dd>
     
 
@@ -1402,7 +1403,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="P2PEvent.html">P2PEvent</a></span>
+<span class="param-type"><a href="PeerGroupEvent.html">PeerGroupEvent</a></span>
 
 
         </li>
@@ -1445,7 +1446,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line87">line 87</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line86">line 86</a>
     </li></ul></dd>
     
 
@@ -1499,7 +1500,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="P2PEvent.html">P2PEvent</a></span>
+<span class="param-type"><a href="PeerGroupEvent.html">PeerGroupEvent</a></span>
 
 
         </li>
@@ -1542,7 +1543,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line109">line 109</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line108">line 108</a>
     </li></ul></dd>
     
 
@@ -1596,7 +1597,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="P2PEvent.html">P2PEvent</a></span>
+<span class="param-type"><a href="PeerGroupEvent.html">PeerGroupEvent</a></span>
 
 
         </li>
@@ -1639,7 +1640,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line103">line 103</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line102">line 102</a>
     </li></ul></dd>
     
 
@@ -1692,7 +1693,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="P2PEvent.html">P2PEvent</a></span>
+<span class="param-type"><a href="PeerGroupEvent.html">PeerGroupEvent</a></span>
 
 
         </li>
@@ -1735,7 +1736,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line98">line 98</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line97">line 97</a>
     </li></ul></dd>
     
 
@@ -1789,7 +1790,7 @@
     <ul>
         <li>
             
-<span class="param-type"><a href="P2PEvent.html">P2PEvent</a></span>
+<span class="param-type"><a href="PeerGroupEvent.html">PeerGroupEvent</a></span>
 
 
         </li>
@@ -1832,7 +1833,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line92">line 92</a>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line91">line 91</a>
     </li></ul></dd>
     
 
@@ -1872,13 +1873,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="P2P.html">P2P</a></li><li><a href="P2PEvent.html">P2PEvent</a></li></ul><h3>Events</h3><ul><li><a href="P2P.html#~event:connected">connected</a></li><li><a href="P2P.html#~event:ejected">ejected</a></li><li><a href="P2P.html#~event:joined">joined</a></li><li><a href="P2P.html#~event:joinrequest">joinrequest</a></li><li><a href="P2P.html#~event:message">message</a></li><li><a href="P2P.html#~event:userleft">userleft</a></li><li><a href="P2P.html#~event:userpresent">userpresent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ESCAPE_MAP">ESCAPE_MAP</a></li><li><a href="global.html#escapeHTML">escapeHTML</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PeerGroup.html">PeerGroup</a></li><li><a href="PeerGroupEvent.html">PeerGroupEvent</a></li></ul><h3>Events</h3><ul><li><a href="PeerGroup.html#~event:connected">connected</a></li><li><a href="PeerGroup.html#~event:ejected">ejected</a></li><li><a href="PeerGroup.html#~event:joined">joined</a></li><li><a href="PeerGroup.html#~event:joinrequest">joinrequest</a></li><li><a href="PeerGroup.html#~event:message">message</a></li><li><a href="PeerGroup.html#~event:userleft">userleft</a></li><li><a href="PeerGroup.html#~event:userpresent">userpresent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ESCAPE_MAP">ESCAPE_MAP</a></li><li><a href="global.html#escapeHTML">escapeHTML</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 01 2018 00:05:50 GMT+0100 (GMT Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 01 2018 20:14:58 GMT+0100 (GMT Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>
