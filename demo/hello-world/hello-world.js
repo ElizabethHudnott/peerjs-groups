@@ -25,10 +25,7 @@ group.addEventListener('message', function (event) {
 
 //When we're accepted into the group then send a message.
 group.addEventListener('joined', function (event) {
-	//Wait until we're connected to all existing members.
-	setTimeout(function () {
-		group.send('Greetings from ' + userID);
-	}, 1000);
+	group.send('Greetings from ' + userID);
 });
 
 //Connect to the group.

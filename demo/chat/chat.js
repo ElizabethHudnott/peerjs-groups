@@ -121,7 +121,7 @@ function initializeNetworking() {
 		secure: url[1] === 'wss://',
 		host: url[3],
 		path: url[4] || '/',
-		port: url[5] || 80,
+		port: url[5] || 9000,
 		debug: 2
 	};
 	if (url[2] !== undefined) {

@@ -167,6 +167,14 @@ class PeerGroup extends EventTarget {
 		*/
 		var sessionID;
 
+		/**	True if we've been accepted into the group and have tried to open connections
+			each of the other peers and have waited for a response.
+		*/
+		var joined = false;
+
+		/**	The number of peers that we're currently trying to open connections to. */
+		var numConnectingTo = 0;
+
 		const me = this;
 
 		/**	Describes the type of content contained in a message sent between peers.
@@ -196,6 +204,20 @@ class PeerGroup extends EventTarget {
 			@private
 		*/
 
+		/**	Describes the kinds of errors that can occur which need to be sent from one peer to another.
+			@enum
+		*/
+		const ErrorType = {
+			/**	A peer attempted to join a peer group with the same user ID as another
+				peer that already belongs to the peer group.
+			*/
+			DUPLICATE_USER_ID: 1,
+			/**	A peer was prevented from joining the peer group because of a human decision
+				to reject it.
+			*/
+			PROHIBITED: 2
+		};
+
 		/**	Constructs a Message.
 			N.B. Do not convert this to a class. Peer.js doesn't support sending class instances.
 			@param {MsgType} type Identifies the kind of message being sent.
@@ -210,24 +232,21 @@ class PeerGroup extends EventTarget {
 			}
 		}
 
-		/**	Describes the kinds of errors that can occur.
-			@enum
-		*/
-		const ErrorType = {
-			/**	A peer attempted to join a peer group with the same user ID as another
-				peer that already belongs to the peer group.
-			*/
-			DUPLICATE_USER_ID: 1,
-			/**	A peer was prevented from joining the peer group because of a human decision
-				to reject it.
-			*/
-			PROHIBITED: 2
-		};
-
 		/**	Creates a PeerGroupEvent. */
 		function createEvent(type, properties) {
 			var isAdmin = peer.id === sessionID && sessionID !== undefined;
 			return new PeerGroupEvent(type, isAdmin, properties);
+		}
+
+		/**	Raises an error.
+			@param {Error} error The error that has occurred.
+		*/
+		function throwError(error) {
+			if (onError) {
+				onError(error);
+			} else {
+				throw error;
+			}
 		}
 
 		/**	Called when a peer initially establishes a network connection with the peer group leader.
@@ -251,6 +270,7 @@ class PeerGroup extends EventTarget {
 			@fires PeerGroup#joined
 		*/
 		function sessionEntered() {
+			joined = true;
 			var event = createEvent('joined', {
 				sessionID: sessionID,
 				userID: escapeHTML(userID),
@@ -306,9 +326,13 @@ class PeerGroup extends EventTarget {
 				//Connect to the other peers in the peer group.
 				if (this.peer === sessionID) {
 					for (const peerName of message.data) {
-						connectTo(peerName);
+						if (peerName !== peer.id) {
+							connectTo(peerName);
+						}
 					}
-					sessionEntered();
+					if (!joined && numConnectingTo === 0) {
+						sessionEntered();
+					}
 				}
 				break;
 			case MsgType.IDENTIFY:
@@ -392,6 +416,7 @@ class PeerGroup extends EventTarget {
 			@param {string} peerName The peer ID of the peer to connect to.
 		*/
 		function connectTo(peerName) {
+			numConnectingTo++;
 			var connection = peer.connect(peerName, {
 				label: userID,
 				metadata: {sessionID: sessionID},
@@ -399,17 +424,14 @@ class PeerGroup extends EventTarget {
 			});
 			connection.on('data', dataReceived);
 			connection.on('error', function (error) {
-				if (error.type == 'peer-unavailable') {
-					/*Do nothing. Assume peer has lost connection to the broker and will
-					  reconnect to it and then us. */
-				} else if (onError) {
-					onError(error);
-				} else {
-					throw error;
-				}
+				throwError(error);
 			});
 			connection.on('open', function () {
 				connections.set(peerName, connection);
+				numConnectingTo--;
+				if (!joined && numConnectingTo === 0) {
+					sessionEntered();
+				}
 			});
 			connection.on('close', connectionClosed);
 		}
@@ -431,13 +453,11 @@ class PeerGroup extends EventTarget {
 		/**	Configures this peer to act as the peer group leader. */
 		function createSession () {
 			peer = new Peer(sessionID, options);
-			peer.on('error', function(error) {
+			peer.on('error', function (error) {
 				if (error.type == 'unavailable-id') {
 					me.connect(sessionID);
-				} else if (onError) {
-					onError(error);
 				} else {
-					throw error;
+					throwError(error);
 				}
 			});
 
@@ -514,7 +534,13 @@ class PeerGroup extends EventTarget {
 		*/
 		this.connect = function(sessionIDToJoin, myUserID) {
 			var firstConnection;
-			sessionID = escapeHTML(sessionIDToJoin);
+			joined = false;
+			numConnectingTo = 0;
+			if (!PeerGroup.validSessionID.test(sessionIDToJoin)) {
+				throwError(new Error('Invalid session ID.'));
+				return;
+			}
+			sessionID = sessionIDToJoin;
 			userID = myUserID;
 			var newPeerNeeded = (peer === undefined || peer.disconnected);
 
@@ -530,11 +556,13 @@ class PeerGroup extends EventTarget {
 							} else {
 								/*Ignore. Been asked by the broker to connect to a peer
 								  that's since gone offline. */
+								numConnectingTo--;
+								if (!joined && numConnectingTo === 0) {
+									sessionEntered();
+								}
 							}
-						} else if (onError) {
-							onError(error);
 						} else {
-							throw error;
+							throwError(error);
 						}
 					});
 
@@ -675,11 +703,7 @@ class PeerGroup extends EventTarget {
 			var destPeerName = usersToPeers.get(destUser);
 			if (destPeerName === undefined) {
 				var error = new Error(`No such user ${destUser}`);
-				if (onError) {
-					onError(error);
-				} else {
-					throw error;
-				}
+				throwError(error);
 			} else {
 				var connection = connections.get(destPeerName);
 				if (connection === undefined) {
@@ -693,4 +717,8 @@ class PeerGroup extends EventTarget {
 		}
 
 	} // End of PeerGroup constructor.
+
+	static get validSessionID() {
+		return /^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$/;
+	}
 }
