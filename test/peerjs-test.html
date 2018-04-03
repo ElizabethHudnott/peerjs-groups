@@ -17,19 +17,23 @@
 				console.log('CONNECTION CLOSED');
 			}
 
-			var isCaller = (new URLSearchParams(document.location.search.substring(1))).get('caller');
-			var peer, connection;
-
-			if (isCaller === 'true' || isCaller === '1') {
-				var peer = new Peer({host: 'localhost', debug: 3});
-				peer.on('error', logPeerError);
-				connection = peer.connect('callee', {reliable: true});
+			function call() {
+				connection = peer.connect('callee', {reliable: true, label: 'test-label'});
 				connection.on('error', logConnectionError)
 				connection.on('open', function () {
 					console.log('OUTGOING CONNECTION OPEN');
 				});
 				connection.on('data', logReceived);
 				connection.on('close', logClosed);
+			}
+
+			var isCaller = (new URLSearchParams(document.location.search.substring(1))).get('caller');
+			var peer, connection;
+
+			if (isCaller === 'true' || isCaller === '1') {
+				var peer = new Peer({host: 'localhost', debug: 3});
+				peer.on('error', logPeerError);
+				call();
 			} else {
 				var peer = new Peer('callee', {host: 'localhost', debug: 3});
 				peer.on('error', logPeerError);
