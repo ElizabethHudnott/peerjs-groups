@@ -23,7 +23,7 @@
 			if (isCaller === 'true' || isCaller === '1') {
 				var peer = new Peer({host: 'localhost', debug: 3});
 				peer.on('error', logPeerError);
-				connection = peer.connect('nobody', {reliable: true});
+				connection = peer.connect('callee', {reliable: true});
 				connection.on('error', logConnectionError)
 				connection.on('open', function () {
 					console.log('OUTGOING CONNECTION OPEN');
