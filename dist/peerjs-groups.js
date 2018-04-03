@@ -107,7 +107,10 @@ class PeerGroup extends EventTarget {
 
 	/**	@event PeerGroup~joinrequest
 		@description Fired when this peer is the peer group leader and another peer asks to
-		join the peer group.
+		join the peer group. If no event listeners have been added to listen for this event
+		then any peer that connects to the group will automatically be accepted as a new
+		member. If you add a listener and later remove it then no new peers will able to
+		join the group until you add another listener (or invoke acceptUser in another context).
 		@type {PeerGroupEvent}
 	*/
 
@@ -171,6 +174,9 @@ class PeerGroup extends EventTarget {
 			each of the other peers and have waited for a response.
 		*/
 		var joined = false;
+
+		/**	True if a joinrequest event listener has ever been added to this PeerGroup. */
+		var hasJoinRequestListenerAdded = false;
 
 		/**	The number of peers that we're currently trying to open connections to. */
 		var numConnectingTo = 0;
@@ -401,6 +407,7 @@ class PeerGroup extends EventTarget {
 		function disconnect() {
 			for (const connection of connections.values()) {
 				connection.off('close', connectionClosed);
+				connection.close();
 			}
 			if (peer !== undefined) {
 				peer.destroy();
@@ -508,7 +515,7 @@ class PeerGroup extends EventTarget {
 					pending.set(peerName, connection);
 					connection.on('error', onError);
 
-					if (acceptedUsers.has(newUserID)) {
+					if (acceptedUsers.has(newUserID) || !hasJoinRequestListenerAdded) {
 						me.acceptUser(newUserID);
 					} else {
 						connection.on('close', function () {
@@ -534,72 +541,70 @@ class PeerGroup extends EventTarget {
 		*/
 		this.connect = function(sessionIDToJoin, myUserID) {
 			var firstConnection;
-			joined = false;
-			numConnectingTo = 0;
-			if (!PeerGroup.validSessionID.test(sessionIDToJoin)) {
-				throwError(new Error('Invalid session ID.'));
-				return;
-			}
+
+			disconnect();
 			sessionID = sessionIDToJoin;
 			userID = myUserID;
-			var newPeerNeeded = (peer === undefined || peer.disconnected);
+			joined = false;
+			numConnectingTo = 0;
 
-			if (sessionID !== undefined && (newPeerNeeded || peer.id !== sessionID)) {
+			if (sessionID === undefined) {
+				createSession();
+			} else if (!PeerGroup.validSessionID.test(sessionIDToJoin)) {
+				throwError(new Error('Invalid session ID.'));
+			} else {
 
-				if (newPeerNeeded) {
-					disconnect();
-					peer = new Peer(options);
-					peer.on('error', function (error) {
-						if (error.type == 'peer-unavailable') {
-							if (error.message.slice(-sessionID.length) === sessionID) {
-								createSession(sessionID, onError);
-							} else {
-								/*Ignore. Been asked by the broker to connect to a peer
-								  that's since gone offline. */
-								numConnectingTo--;
-								if (!joined && numConnectingTo === 0) {
-									sessionEntered();
-								}
-							}
+				peer = new Peer(options);
+				peer.on('error', function (error) {
+					if (error.type == 'peer-unavailable') {
+						if (error.message.slice(-sessionID.length) === sessionID) {
+							createSession(sessionID, onError);
 						} else {
-							throwError(error);
+							/*Ignore. Been asked by the broker to connect to a peer
+							  that's since gone offline. */
+							numConnectingTo--;
+							if (!joined && numConnectingTo === 0) {
+								sessionEntered();
+							}
+						}
+					} else {
+						throwError(error);
+					}
+				});
+
+				peer.on('connection', function (connection) {
+					connection.on('open', function () {
+						if (connection.metadata.sessionID === sessionID) {
+							var newUserID = connection.label;
+							var peerName = connection.peer;
+
+							//An existing peer might change it's user ID.
+							var existingUserID = peersToUsers.get(peerName);
+							if (existingUserID !== undefined) {
+								usersToPeers.delete(existingUserID);
+							}
+
+							//Respond to the connection request.
+							peersToUsers.set(peerName, newUserID);
+							usersToPeers.set(escapeHTML(newUserID), peerName);
+
+							connections.set(peerName, connection);
+							sendIdentity(connection);
+							connection.on('data', dataReceived);
+							connection.on('error', onError);
+							connection.on('close', connectionClosed);
+
+							var event = createEvent('userpresent', {
+								sessionID: sessionID,
+								userID: escapeHTML(newUserID),
+								isPrivate: false
+							});
+							me.dispatchEvent(event);
+						} else {
+							connection.close();
 						}
 					});
-
-					peer.on('connection', function (connection) {
-						connection.on('open', function () {
-							if (connection.metadata.sessionID === sessionID) {
-								var newUserID = connection.label;
-								var peerName = connection.peer;
-
-								//An existing peer might change it's user ID.
-								var existingUserID = peersToUsers.get(peerName);
-								if (existingUserID !== undefined) {
-									usersToPeers.delete(existingUserID);
-								}
-
-								//Respond to the connection request.
-								peersToUsers.set(peerName, newUserID);
-								usersToPeers.set(escapeHTML(newUserID), peerName);
-
-								connections.set(peerName, connection);
-								sendIdentity(connection);
-								connection.on('data', dataReceived);
-								connection.on('error', onError);
-								connection.on('close', connectionClosed);
-
-								var event = createEvent('userpresent', {
-									sessionID: sessionID,
-									userID: escapeHTML(newUserID),
-									isPrivate: false
-								});
-								me.dispatchEvent(event);
-							} else {
-								connection.close();
-							}
-						});
-					});
-				}
+				});
 
 				firstConnection = peer.connect(sessionID, {
 					label: userID,
@@ -614,13 +619,7 @@ class PeerGroup extends EventTarget {
 					connections.set(sessionID, this);
 					connected(sessionID);
 				});
-
-			} else {
-
-				createSession();
-
-			}
-
+			} // end if sessionID is defined.
 		} // end of connect method.
 
 		/**	Disconnects from the peer group (if connected to one) or cancels any pending
@@ -714,6 +713,13 @@ class PeerGroup extends EventTarget {
 					data
 				));
 			}
+		}
+
+		this.addEventListener = function (type, listener, options) {
+			if (type === 'joinrequest') {
+				hasJoinRequestListenerAdded = true;
+			}
+			PeerGroup.prototype.addEventListener.call(this, type, listener, options);
 		}
 
 	} // End of PeerGroup constructor.

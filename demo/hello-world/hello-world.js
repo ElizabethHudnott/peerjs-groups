@@ -11,12 +11,8 @@ var userID = "User" + Math.floor(Math.random() * 10000);
 //Create the object we use to access all Peer.js Groups functionality.
 var group = new PeerGroup(function (error) {
 	addItem(error);
+	debugger;
 }, {host: 'localhost'});
-
-//Accept any user into the group who tries to join.
-group.addEventListener('joinrequest', function (event) {
-	group.acceptUser(event.userID);
-});
 
 //When we receive a message, add it to the document.
 group.addEventListener('message', function (event) {
@@ -29,4 +25,4 @@ group.addEventListener('joined', function (event) {
 });
 
 //Connect to the group.
-group.connect('MySession', userID);
+group.connect('hello-world', userID);
