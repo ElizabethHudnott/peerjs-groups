@@ -18,7 +18,7 @@
 			}
 
 			function call() {
-				connection = peer.connect('callee', {reliable: true, label: 'test-label'});
+				connection = peer.connect('callee', {reliable: true});
 				connection.on('error', logConnectionError)
 				connection.on('open', function () {
 					console.log('OUTGOING CONNECTION OPEN');
