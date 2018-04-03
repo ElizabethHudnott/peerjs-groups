@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Peer.js Groups</title>
+		<script src="../lib/peer.js"></script>
+		<script>
+			function logPeerError(error) {
+				console.error('PEER ERROR: ' + error.type + ' - ' + error);
+			}
+			function logConnectionError(error) {
+				console.error('CONNECTION ERROR:' + error);
+			}
+			function logReceived(data) {
+				console.log('RECEIVED: ' + data);
+			}
+			function logClosed() {
+				console.log('CONNECTION CLOSED');
+			}
+
+			var isCaller = (new URLSearchParams(document.location.search.substring(1))).get('caller');
+			var peer, connection;
+
+			if (isCaller === 'true' || isCaller === '1') {
+				var peer = new Peer({host: 'localhost', debug: 3});
+				peer.on('error', logPeerError);
+				connection = peer.connect('nobody', {reliable: true});
+				connection.on('error', logConnectionError)
+				connection.on('open', function () {
+					console.log('OUTGOING CONNECTION OPEN');
+				});
+				connection.on('data', logReceived);
+				connection.on('close', logClosed);
+			} else {
+				var peer = new Peer('callee', {host: 'localhost', debug: 3});
+				peer.on('error', logPeerError);
+				peer.on('connection', function (c) {
+					connection = c;
+					console.log('CONNECTION MADE');
+					connection.on('error', logConnectionError);
+					connection.on('open', function () {
+						console.log('INCOMING CONNECTION OPEN');
+					});
+				});
+			}
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>

@@ -129,12 +129,7 @@ function initializeNetworking() {
 	}
 	group = new PeerGroup(
 		function (error) {
-			chatWindow.append(`
-				<div class="chat system-message">
-					Error: ${error.message}
-				</div>
-			`);
-			console.error(error);
+			console.error(error.type + ': ' + error);
 			debugger;
 		},
 		connectionOptions
