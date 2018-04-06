@@ -1,8 +1,5 @@
 "use strict";
-const URL_PARAMETERS = new URLSearchParams(document.location.search.substring(1));
 var sessionBadge = $('#session-badge');
-var alertArea = $('#alerts');
-var connectButton = $('#connect-btn');
 var chatWindow = $('#chat');
 var userList = $('#user-list');
 var messageBox = $('#message');
@@ -18,8 +15,6 @@ const youTubeURL = /^http(s)?:\/\/www.youtube.com\/watch\?v=([^&]+)(&(.*))?$/;
 const slideShareURL = /http(s)?:\/\/www.slideshare.net\/([\w-]+\/[\w-]+)((\/?$)|\?)/
 
 var joinRequests = [];
-var connected = false;
-var group, myUserID;
 
 function processJoinRequest() {
 	if (modalDisplayed) {
@@ -87,6 +82,7 @@ connectButton.on('click', function (event) {
 				sessionID = undefined;
 			}
 			group.connect(sessionID, myUserID);
+			myUserID = escapeHTML(myUserID);
 		}
 	} // end if connected else not connected
 });
@@ -115,18 +111,8 @@ $('#confirm-action-btn').on('click', function (event) {
 });
 
 function initializeNetworking() {
-	//Format: API-key@hostname/path:port, preceded by wss:// for an encrypted connection.
-	let url = $('#server-url').val().match(/^(ws(?:s)?:\/\/)?(?:([^@]*)@)?([^/:]+)(\/[^:]*)?(?::(\d+))?$/);
-	let connectionOptions = {
-		secure: url[1] === 'wss://',
-		host: url[3],
-		path: url[4] || '/',
-		port: url[5] || 9000,
-		debug: 2
-	};
-	if (url[2] !== undefined) {
-		connectionOptions.key = url[2];
-	}
+	let connectionOptions = parseSignallingURL($('#server-url').val());
+
 	group = new PeerGroup(
 		function (error) {
 			console.error(error.type + ': ' + error);
@@ -341,13 +327,3 @@ $('.modal:not(#join-request-modal)').on('hidden.bs.modal', function (event) {
 	modalDisplayed = false;
 	processJoinRequest();
 });
-
-{
-	let sessionIDInURL = URL_PARAMETERS.get('room');
-	if (sessionIDInURL) {
-		$('#session-id').val(sessionIDInURL);
-		document.getElementById('user-id').focus();
-	} else {
-		document.getElementById('session-id').focus();		
-	}
-}

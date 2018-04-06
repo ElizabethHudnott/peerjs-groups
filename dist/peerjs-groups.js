@@ -178,9 +178,6 @@ class PeerGroup extends EventTarget {
 		/**	True if a joinrequest event listener has ever been added to this PeerGroup. */
 		var hasJoinRequestListenerAdded = false;
 
-		/**	The number of peers that we're currently trying to open connections to. */
-		var numConnectingTo = 0;
-
 		const me = this;
 
 		/**	Describes the type of content contained in a message sent between peers.
@@ -336,9 +333,6 @@ class PeerGroup extends EventTarget {
 							connectTo(peerName);
 						}
 					}
-					if (!joined && numConnectingTo === 0) {
-						sessionEntered();
-					}
 				}
 				break;
 			case MsgType.IDENTIFY:
@@ -353,6 +347,9 @@ class PeerGroup extends EventTarget {
 					isPrivate: false
 				});
 				me.dispatchEvent(event);
+				if (!joined && connections.size === peersToUsers.size) {
+					sessionEntered();
+				}
 				break;
 			case MsgType.CONNECT_ERROR:
 				//We were either refused permission to join the peer group or kicked out.
@@ -423,7 +420,6 @@ class PeerGroup extends EventTarget {
 			@param {string} peerName The peer ID of the peer to connect to.
 		*/
 		function connectTo(peerName) {
-			numConnectingTo++;
 			var connection = peer.connect(peerName, {
 				label: userID,
 				metadata: {sessionID: sessionID},
@@ -435,10 +431,6 @@ class PeerGroup extends EventTarget {
 			});
 			connection.on('open', function () {
 				connections.set(peerName, connection);
-				numConnectingTo--;
-				if (!joined && numConnectingTo === 0) {
-					sessionEntered();
-				}
 			});
 			connection.on('close', connectionClosed);
 		}
@@ -546,7 +538,6 @@ class PeerGroup extends EventTarget {
 			sessionID = sessionIDToJoin;
 			userID = myUserID;
 			joined = false;
-			numConnectingTo = 0;
 
 			if (sessionID === undefined) {
 				createSession();
@@ -562,10 +553,6 @@ class PeerGroup extends EventTarget {
 						} else {
 							/*Ignore. Been asked by the broker to connect to a peer
 							  that's since gone offline. */
-							numConnectingTo--;
-							if (!joined && numConnectingTo === 0) {
-								sessionEntered();
-							}
 						}
 					} else {
 						throwError(error);
@@ -715,6 +702,20 @@ class PeerGroup extends EventTarget {
 			}
 		}
 
+		/**	The set of all user IDs belonging to peers currently in the peer group.
+		*/
+		Object.defineProperty(this, 'userIDs', {
+			enumerable: true,
+			get() {
+				let userIDs = new Set();
+				userIDs.add(escapeHTML(userID));
+				for (let peerID of connections.keys()) {
+					userIDs.add(escapeHTML(peersToUsers.get(peerID)));
+				}
+				return userIDs;
+			}
+		});
+
 		this.addEventListener = function (type, listener, options) {
 			if (type === 'joinrequest') {
 				hasJoinRequestListenerAdded = true;
@@ -724,6 +725,9 @@ class PeerGroup extends EventTarget {
 
 	} // End of PeerGroup constructor.
 
+	/**	Specifies what string are valid session IDs.
+		@return {string} A regular expression that matches valid session IDs.
+	*/
 	static get validSessionID() {
 		return /^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$/;
 	}

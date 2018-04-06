@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>3 Men's Morris</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+		<link rel="stylesheet" href="../common/site.css"/>
+		<link rel="stylesheet" href="games.css"/>
+	</head>
+	<body>
+		<div class="app-container d-flex flex-column" id="container">
+			<div class="jumbotron">
+				<nav class="navbar navbar-expand px-0">
+					<ul class="navbar-nav ml-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="../hello-world/index.html">Hello World!</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../chat/index.html">Chat</a>
+						</li>
+						<li class="nav-item active">
+							<span class="nav-link">3 Men's Morris</span>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../../doc/PeerGroup.html">API</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="https://github.com/ElizabethHudnott/peerjs-groups">GitHub</a>
+						</li>
+					</ul>
+				</nav>
+
+				<h1 class="display-3 mb-4">
+					Three Men's Morris
+				</h1>
+				<hr class="my-2"/>
+				<p class="lead">
+					A Simple Roman Board Game
+				</p>
+			</div>
+
+			<div id="alerts"></div>
+
+			<form class="mx-auto mb-2" id="login-form">
+				<table>
+					<tr class="login-detail">
+						<th>
+							<label for="server-url">Signalling Server:</label>
+						</th>
+						<td>
+							<input type="text" id="server-url" value="localhost:9000" pattern="^(ws(s)?://)?([^@]*@)?[^/:]+(/[^:]*)?(:\d+)?$" title="Please enter a valid URL."/>
+						</td>
+					</tr>
+					<tr class="login-detail">
+						<th>
+							<label for="session-id">Game Session Name:</label>
+						</th>
+						<td>
+							<input type="text" id="session-id" pattern="^[A-Za-z0-9]+([ _-][A-Za-z0-9]+)*$" title="Please enter a room name that only uses English letters, numbers, spaces, _ or - and begins and ends with a letter or a number."/>
+						</td>
+					</tr>
+					<tr class="login-detail">
+						<th>
+							<label for="user-id">User ID:</label>
+						</th>
+						<td>
+							<input type="text" id="user-id" pattern="^\S.*" required="required" title="Please enter a user ID that contains some letters."/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<button type="submit" id="connect-btn" class="btn btn-primary btn-block">Connect</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+			<div>
+				<table class="float-left">
+					<tr>
+						<td><h3 id="user-id2"></h3></td>
+					</tr>
+				</table>
+				<table class="float-right">
+					<tr>
+						<td><h3 id="opponent-user-id"></h3></td>
+					</tr>
+				</table>
+			</div>
+			<canvas id="board">
+				This page requires HTML5 Canvas and JavaScript.
+			</canvas>
+		</div>
+
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+		<script src="../../lib/peer.min.js"></script>
+		<script src="../../dist/peerjs-groups.js"></script>
+		<script src="../common/util.js"></script>
+		<script src="../common/common.js"></script>
+		<script src="three-mens-morris.js"></script>
+	</body>
+</html>

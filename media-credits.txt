@@ -1,0 +1,9 @@
+demos/chat/img/ui/ban-user.png
+	Author: Oxygen Team
+	Licence: GNU Lesser General Public License
+	URL: http://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/Actions-im-ban-user-icon.html
+
+demos/three-mens-morris/img/background-original.jpg
+	Author: Daniel Smith
+	Licence: CC0
+	URL: https://www.publicdomainpictures.net/en/view-image.php?image=70393&picture=stone-texture-10
