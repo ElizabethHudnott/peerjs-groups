@@ -4,16 +4,20 @@ var canvas = board[0].getContext('2d');
 var userID2Tag = $('#user-id2');
 var opponentUserIDTag = $('#opponent-user-id');
 
-var myUserID, opponentUserID, gamePhase, color, boardState;
+var myUserID, opponentUserID;
+var gamePhase, boardState, color, numPiecesPlaced;
+var score = 0, opponentScore = 0;
 var myTurn = false;
 var boardPadding, squareSize, pieceRadius;
-var hitX, hitY;
+var hitX, hitY, selectedX, selectedY;
 var group;
 
+const MAX_PIECES = 3;
+
 const Color = {
-	WHITE: 1,
-	BLACK: 2,
-	NEITHER: 3,
+	WHITE: 'W',
+	BLACK: 'B',
+	NEITHER: '-',
 }
 
 const MessageType = {
@@ -55,8 +59,25 @@ function newGame() {
 		[Color.NEITHER, Color.NEITHER, Color.NEITHER]
 	];
 	gamePhase = MessageType.PLACE_PIECE;
+	numPiecesPlaced = 0;
 	myTurn = color === Color.WHITE;
 	drawBoard();
+}
+
+function areConnectedSquares(startX, startY, endX, endY) {
+	var xDifference = endX - startX;
+	var yDifference = endY - startY;
+	if (xDifference === 0) {
+		return yDifference === -1 || yDifference === 1;
+	} else if (yDifference === 0) {
+		return xDifference === -1 || xDifference === 1;
+	} else if (startX === startY) {
+		return xDifference === yDifference;
+	} else if (startX === 2 - startY) {
+		return xDifference === -yDifference;
+	} else {
+		return false;
+	}
 }
 
 function checkWin() {
@@ -130,6 +151,7 @@ function initializeNetworking() {
 			} else {
 				color = Color.BLACK;
 			}
+			newGame();
 			group.send(proposeGame(color));
 		} else {
 			color = Color.NEITHER;
@@ -167,6 +189,10 @@ function initializeNetworking() {
 					let y = data.y;
 					if (boardState[x][y] === Color.NEITHER) {
 						boardState[x][y] = data.color;
+						drawBoard();
+						if (numPiecesPlaced === MAX_PIECES) {
+							gamePhase = MessageType.MOVE_PIECE;
+						}
 						if (color !== Color.NEITHER) {
 							myTurn = true;
 						}
@@ -187,6 +213,7 @@ function initializeNetworking() {
 							//The space the player moves their piece into must be empty to begin with.
 							boardState[startX][startY] = Color.NEITHER;
 							boardState[endX][endY] = colorOfPiece;
+							drawBoard();
 							if (color !== Color.NEITHER) {
 								myTurn = true;
 							}
@@ -199,8 +226,9 @@ function initializeNetworking() {
 }
 
 function drawBoard() {
+	canvas.shadowColor = undefined;
 	canvas.beginPath();
-	canvas.clearRect(0, 0, 800, 800);
+	canvas.clearRect(-boardPadding, -boardPadding, 800, 800);
 	canvas.strokeRect(0, 0, squareSize * 2, squareSize * 2);
 	canvas.beginPath();
 	//Vertical middle line
@@ -217,6 +245,7 @@ function drawBoard() {
 	canvas.lineTo(0, squareSize * 2);
 	canvas.stroke();
 	if (boardState !== undefined) {
+		canvas.shadowColor = 'black';
 		for (let i = 0; i < 3; i++) {
 			for (let j = 0; j < 3; j++) {
 				let pieceColor = boardState[i][j];
@@ -225,25 +254,43 @@ function drawBoard() {
 				} else if (pieceColor === Color.WHITE) {
 					canvas.fillStyle = 'PaleGoldenrod';
 				} else {
-					canvas.fillStyle = '#000044';
+					canvas.fillStyle = '#000055';
 				}
 				canvas.beginPath();
 				canvas.arc(i * squareSize, j * squareSize, pieceRadius, 0, Math.PI * 2);
 				canvas.fill();
+				if (i === selectedX && j === selectedY) {
+					canvas.strokeStyle = 'Gold';
+					canvas.lineWidth = 4;
+					canvas.stroke();
+					canvas.strokeStyle = 'Black';
+					canvas.lineWidth = 2;
+				}
 			}
 		}
 	}
 }
 
 function findHitRegion(event) {
+	if (boardState === undefined) {
+		return;
+	}
 	let x = event.offsetX - boardPadding;
 	let y = event.offsetY - boardPadding;
 	let squareX = Math.round(x / squareSize);
 	let squareY = Math.round(y / squareSize);
+	let squareColor = boardState[squareX][squareY];
 	let distance = Math.sqrt((x - squareX * squareSize)**2 + (y - squareY * squareSize)**2);
 	if (!myTurn ||
 		distance > pieceRadius ||
-		(gamePhase === MessageType.PLACE_PIECE && boardState[squareX][squareY] !== Color.NEITHER)
+		(gamePhase === MessageType.PLACE_PIECE && squareColor !== Color.NEITHER) ||
+		(gamePhase === MessageType.MOVE_PIECE && 
+			(selectedX === undefined && squareColor !== color) ||
+			(selectedX !== undefined &&
+				(squareColor !== Color.NEITHER || !areConnectedSquares(selectedX, selectedY, squareX, squareY)) &&
+				(selectedX !== squareX || selectedY !== squareY)
+			)
+		)
 	) {
 		hitX = undefined;
 		hitY = undefined;
@@ -261,10 +308,30 @@ board.on('mousemove', function (event) {
 
 board.on('click', function (event) {
 	if (hitX !== undefined) {
-		boardState[hitX][hitY] = color;
-		myTurn = false;
+		if (gamePhase === MessageType.PLACE_PIECE) {
+			group.send(placePiece(hitX, hitY, color));
+			boardState[hitX][hitY] = color;
+			myTurn = false;
+			numPiecesPlaced = numPiecesPlaced + 1;
+			if (numPiecesPlaced === MAX_PIECES && color === Color.BLACK) {
+				gamePhase = MessageType.MOVE_PIECE;
+			}
+		} else {
+			if (selectedX === undefined) {
+				selectedX = hitX;
+				selectedY = hitY;
+			} else {
+				if (hitX !== selectedX || hitY !== selectedY) {
+					group.send(movePiece(selectedX, selectedY, hitX, hitY));
+					boardState[selectedX][selectedY] = Color.NEITHER;
+					boardState[hitX][hitY] = color;
+					myTurn = false;
+				}
+				selectedX = undefined;
+				selectedY = undefined;
+			}
+		}
 		drawBoard();
-		group.send(placePiece(hitX, hitY, color));
 	}
 });
 
@@ -279,6 +346,9 @@ function resizeBoard() {
 	pieceRadius = Math.round(squareSize / 7);
 	canvas.setTransform(1, 0, 0, 1, boardPadding, boardPadding);
 	canvas.lineWidth = 2;
+	canvas.shadowOffsetX = 30;
+	canvas.shadowOffsetY = 35;
+	canvas.shadowBlur = 50;
 	drawBoard();
 }
 
