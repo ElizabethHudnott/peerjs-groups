@@ -12,7 +12,7 @@ var boardPadding, squareSize, pieceRadius;
 var hitX, hitY, selectedX, selectedY;
 var group;
 
-const MAX_PIECES = 3; // 4 in some variants, 5 for Noughts and Crosses.
+const MAX_PIECES = 3; // 4 in some variants, 5 for Noughts and Crosses / Tic-Tac-Toe.
 
 const Color = {
 	WHITE: 'W',
@@ -91,19 +91,19 @@ function checkWin() {
 	}
 	if (boardState[0][0] !== Color.NEITHER) {
 		if (boardState[0][0] === boardState[0][1] && boardState[0][1] === boardState[0][2]) {
-			//Left line
+			//Left line. Absent in the circular variant.
 			return boardState[0][0];
 		} else if (boardState[0][0] === boardState[1][0] && boardState[1][0] === boardState[2][0]) {
-			//Top line
+			//Top line. Absent in the circular variant.
 			return boardState[0][0];
 		}
 	}
 	if (boardState[2][2] !== Color.NEITHER) {
 		if (boardState[2][0] === boardState[2][1] && boardState[2][1] === boardState[2][2]) {
-			//Right line
+			//Right line. Absent in the circular variant.
 			return boardState[2][2];
 		} else if (boardState[0][2] === boardState[1][2] && boardState[1][2] === boardState[2][2]) {
-			//Bottom line
+			//Bottom line. Absent in the circular variant.
 			return boardState[2][2];
 		}
 	}
@@ -210,7 +210,7 @@ function initializeNetworking() {
 
 function validPlacement(x, y, colorToPlace) {
 	return boardState[x][y] === Color.NEITHER;
-	//&& (numPiecesPlaced > 0 || color === Color.BLACK || squareX !== 1 || squareY !== 1) || //French rule
+	//&& (numPiecesPlaced > 0 || color === Color.BLACK || squareX !== 1 || squareY !== 1) || //Add for the French variant.
 }
 
 function validMove(startX, startY, endX, endY, isOurMove) {
@@ -224,8 +224,8 @@ function validMove(startX, startY, endX, endY, isOurMove) {
 		correctColor = colorOnSquare !== color && colorOnSquare !== Color.NEITHER;
 	}
 	return correctColor &&
-		boardState[endX][endY] === Color.NEITHER &&
-		areConnectedSquares(startX, startY, endX, endY); //Remove this clause for the Nine Holes variant.
+		boardState[endX][endY] === Color.NEITHER
+		&& areConnectedSquares(startX, startY, endX, endY); //Remove this clause for the Nine Holes variant.
 }
 
 function findHitRegion(event) {
