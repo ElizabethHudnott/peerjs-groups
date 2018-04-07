@@ -12,7 +12,7 @@ var boardPadding, squareSize, pieceRadius;
 var hitX, hitY, selectedX, selectedY;
 var group;
 
-const MAX_PIECES = 3;
+const MAX_PIECES = 3; // 4 in some variants, 5 for Noughts and Crosses.
 
 const Color = {
 	WHITE: 'W',
@@ -82,10 +82,10 @@ function checkWin() {
 			//Vertical middle line
 			return boardState[1][1];
 		} else if (boardState[0][0] === boardState[1][1] && boardState[1][1] === boardState[2][2]) {
-			//Diagonal left-to-right line
+			//Diagonal left-to-right line. Absent in some variants.
 			return boardState[1][1];
 		} else if (boardState[2][0] === boardState[1][1] && boardState[1][1] === boardState[0][2]) {
-			//Diagonal right-to-left line
+			//Diagonal right-to-left line. Absent in some variants.
 			return boardState[1][1];
 		}
 	}
@@ -225,7 +225,7 @@ function validMove(startX, startY, endX, endY, isOurMove) {
 	}
 	return correctColor &&
 		boardState[endX][endY] === Color.NEITHER &&
-		areConnectedSquares(startX, startY, endX, endY);
+		areConnectedSquares(startX, startY, endX, endY); //Remove this clause for the Nine Holes variant.
 }
 
 function findHitRegion(event) {
