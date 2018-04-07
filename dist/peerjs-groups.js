@@ -1,5 +1,6 @@
 "use strict";
 /* TODO
+ *	* Add function to get admin's user ID.
  *	* Buffer messages when not connected to any other peers.
  *	* Optionally replay the entire session history to late entrants?
  *	* Disconnect peers who send malformed messages.
@@ -147,6 +148,9 @@ class PeerGroup extends EventTarget {
 			Only used on the leading peer.
 		*/
 		var pending = new Map();
+
+		/**	Set of peer IDs we're in process of trying to connect to. */
+		var tryingToConnect = new Set();
 
 		/**	Maps from random peer name to chosen identities (unescaped). */
 		var peersToUsers = new Map();
@@ -341,13 +345,14 @@ class PeerGroup extends EventTarget {
 				var escapedUserID = escapeHTML(remoteUserID);
 				peersToUsers.set(this.peer, remoteUserID);
 				usersToPeers.set(escapedUserID, this.peer);
+				tryingToConnect.delete(this.peer);
 				var event = createEvent('userpresent', {
 					sessionID: sessionID,
 					userID: escapedUserID,
 					isPrivate: false
 				});
 				me.dispatchEvent(event);
-				if (!joined && connections.size === peersToUsers.size) {
+				if (!joined && tryingToConnect.size === 0) {
 					sessionEntered();
 				}
 				break;
@@ -411,6 +416,7 @@ class PeerGroup extends EventTarget {
 			}
 			peersToUsers.clear();
 			usersToPeers.clear();
+			tryingToConnect.clear();
 			acceptedUsers.clear();
 			rejectedUsers.clear();
 		}
@@ -420,6 +426,7 @@ class PeerGroup extends EventTarget {
 			@param {string} peerName The peer ID of the peer to connect to.
 		*/
 		function connectTo(peerName) {
+			tryingToConnect.add(peerName);
 			var connection = peer.connect(peerName, {
 				label: userID,
 				metadata: {sessionID: sessionID},
@@ -427,6 +434,7 @@ class PeerGroup extends EventTarget {
 			});
 			connection.on('data', dataReceived);
 			connection.on('error', function (error) {
+				tryingToConnect.delete(this.peer);
 				throwError(error);
 			});
 			connection.on('open', function () {
@@ -451,6 +459,9 @@ class PeerGroup extends EventTarget {
 
 		/**	Configures this peer to act as the peer group leader. */
 		function createSession () {
+			if (peer !== undefined) {
+				peer.destroy();
+			}
 			peer = new Peer(sessionID, options);
 			peer.on('error', function (error) {
 				if (error.type == 'unavailable-id') {

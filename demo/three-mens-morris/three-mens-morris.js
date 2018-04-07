@@ -20,22 +20,15 @@ const Color = {
 	NEITHER: '-',
 }
 
-const MessageType = {
-	PROPOSE_GAME: 1,
+const Phase = {
+	WAITING_TO_PLAY: 1,
 	PLACE_PIECE: 2,
 	MOVE_PIECE: 3,
 }
 
-function proposeGame(colorToPlayAs) {
-	return {
-		messageType: MessageType.PROPOSE_GAME,
-		color: colorToPlayAs,
-	};
-}
-
 function placePiece(x, y, colorToPlace) {
 	return {
-		messageType: MessageType.PLACE_PIECE,
+		phase: Phase.PLACE_PIECE,
 		x: x,
 		y: y,
 		color: colorToPlace,
@@ -44,7 +37,7 @@ function placePiece(x, y, colorToPlace) {
 
 function movePiece(startX, startY, endX, endY) {
 	return {
-		messageType: MessageType.MOVE_PIECE,
+		phase: Phase.MOVE_PIECE,
 		startX: startX,
 		startY: startY,
 		endX: endX,
@@ -58,7 +51,7 @@ function newGame() {
 		[Color.NEITHER, Color.NEITHER, Color.NEITHER],
 		[Color.NEITHER, Color.NEITHER, Color.NEITHER]
 	];
-	gamePhase = MessageType.PLACE_PIECE;
+	gamePhase = Phase.PLACE_PIECE;
 	numPiecesPlaced = 0;
 	myTurn = color === Color.WHITE;
 	drawBoard();
@@ -131,12 +124,13 @@ function initializeNetworking() {
 	group.addEventListener('joined', function (event) {
 		let numUsers = group.userIDs.size;
 		if (numUsers === 1) {
-			gamePhase = MessageType.PROPOSE_GAME;
 			alertArea.append(`
 				<div class="alert alert-info" id="waiting-for-player-alert">
 					Connected to ${event.sessionID}. Waiting for another player to join.
 				</div>
 			`);
+			color = Color.WHITE;
+			gamePhase = Phase.WAITING_TO_PLAY;
 		} else if (numUsers === 2) {
 			for (let someUserID of group.userIDs) {
 				if (someUserID !== myUserID) {
@@ -146,44 +140,33 @@ function initializeNetworking() {
 			}
 			userID2Tag.html(myUserID);
 			opponentUserIDTag.html(opponentUserID);
-			if (Math.random() >= 0.5) {
-				color = Color.WHITE;
-			} else {
-				color = Color.BLACK;
-			}
+			color = Color.BLACK;
 			newGame();
-			group.send(proposeGame(color));
 		} else {
 			color = Color.NEITHER;
 			newGame();
 		}
 	});
 
+	group.addEventListener('userpresent', function (event) {
+		if (gamePhase === Phase.WAITING_TO_PLAY) {
+			//We were waiting for someone to play with.
+			$('#waiting-for-player-alert').remove();
+			opponentUserID = event.userID;
+			userID2Tag.html(myUserID);
+			opponentUserIDTag.html(opponentUserID);
+			newGame();
+		}
+	});
+
 	group.addEventListener('message', function (event) {
 		let data = event.message;
-		let messageType = data.messageType;
-		if (messageType === MessageType.PROPOSE_GAME) {
-			//User proposes a new game.
-			if (gamePhase === MessageType.PROPOSE_GAME) {
-				//And we're waiting for someone to play with.
-				$('#waiting-for-player-alert').remove();
-				opponentUserID = event.userID;
-				userID2Tag.html(myUserID);
-				opponentUserIDTag.html(opponentUserID);
-				if (data.color === Color.WHITE) {
-					color = Color.BLACK;
-				} else {
-					color = Color.WHITE;
-				}
-				newGame();
-			} else if (color === Color.NEITHER) {
-				newGame();
-			}
-		} else if ((event.userID === opponentUserID && !myTurn) || color === Color.NEITHER) {
+		let phase = data.phase;
+		if ((event.userID === opponentUserID && !myTurn) || color === Color.NEITHER) {
 			//The other player tries to do something and it's their turn, or we're a spectator.
-			if (messageType === MessageType.PLACE_PIECE) {
+			if (phase === Phase.PLACE_PIECE) {
 				//The other player tried to place a new piece onto the board.
-				if (gamePhase === MessageType.PLACE_PIECE) {
+				if (gamePhase === Phase.PLACE_PIECE) {
 					//And it's the right time in the game.
 					let x = data.x;
 					let y = data.y;
@@ -191,16 +174,17 @@ function initializeNetworking() {
 						boardState[x][y] = data.color;
 						drawBoard();
 						if (numPiecesPlaced === MAX_PIECES) {
-							gamePhase = MessageType.MOVE_PIECE;
+							gamePhase = Phase.MOVE_PIECE;
 						}
 						if (color !== Color.NEITHER) {
 							myTurn = true;
 						}
 					}
 				}
-			} else if (messageType === MessageType.MOVE_PIECE) {
+			} else if (phase === Phase.MOVE_PIECE) {
 				//The other player tried to move a piece already on the board.
-				if (gamePhase === MessageType.MOVE_PIECE) {
+				if (gamePhase === Phase.MOVE_PIECE || color === Color.NEITHER) {
+					gamePhase = Phase.MOVE_PIECE;
 					//And it's the right time in the game.
 					let startX = data.startX;
 					let startY = data.startY;
@@ -283,8 +267,9 @@ function findHitRegion(event) {
 	let distance = Math.sqrt((x - squareX * squareSize)**2 + (y - squareY * squareSize)**2);
 	if (!myTurn ||
 		distance > pieceRadius ||
-		(gamePhase === MessageType.PLACE_PIECE && squareColor !== Color.NEITHER) ||
-		(gamePhase === MessageType.MOVE_PIECE && squareColor !== color &&
+		(gamePhase === Phase.PLACE_PIECE && squareColor !== Color.NEITHER) ||
+		(numPiecesPlaced === 0 && color === Color.WHITE && squareX === 1 && squareY === 1) ||
+		(gamePhase === Phase.MOVE_PIECE && squareColor !== color &&
 			(selectedX === undefined ||
 			 squareColor !== Color.NEITHER ||
 			 !areConnectedSquares(selectedX, selectedY, squareX, squareY)
@@ -307,13 +292,13 @@ board.on('mousemove', function (event) {
 
 board.on('click', function (event) {
 	if (hitX !== undefined) {
-		if (gamePhase === MessageType.PLACE_PIECE) {
+		if (gamePhase === Phase.PLACE_PIECE) {
 			group.send(placePiece(hitX, hitY, color));
 			boardState[hitX][hitY] = color;
 			myTurn = false;
 			numPiecesPlaced = numPiecesPlaced + 1;
 			if (numPiecesPlaced === MAX_PIECES && color === Color.BLACK) {
-				gamePhase = MessageType.MOVE_PIECE;
+				gamePhase = Phase.MOVE_PIECE;
 			}
 		} else {
 			if (boardState[hitX][hitY] === color) {
