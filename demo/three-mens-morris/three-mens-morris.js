@@ -71,8 +71,8 @@ function areConnectedSquares(startX, startY, endX, endY) {
 		return yDifference === -1 || yDifference === 1;
 	} else if (yDifference === 0) {
 		return xDifference === -1 || xDifference === 1;
-	} else if (startX === startY) {
-		return xDifference === yDifference;
+	} else if (startX === startY && xDifference === yDifference) {
+		return true;
 	} else if (startX === 2 - startY) {
 		return xDifference === -yDifference;
 	} else {
@@ -284,11 +284,10 @@ function findHitRegion(event) {
 	if (!myTurn ||
 		distance > pieceRadius ||
 		(gamePhase === MessageType.PLACE_PIECE && squareColor !== Color.NEITHER) ||
-		(gamePhase === MessageType.MOVE_PIECE && 
-			(selectedX === undefined && squareColor !== color) ||
-			(selectedX !== undefined &&
-				(squareColor !== Color.NEITHER || !areConnectedSquares(selectedX, selectedY, squareX, squareY)) &&
-				(selectedX !== squareX || selectedY !== squareY)
+		(gamePhase === MessageType.MOVE_PIECE && squareColor !== color &&
+			(selectedX === undefined ||
+			 squareColor !== Color.NEITHER ||
+			 !areConnectedSquares(selectedX, selectedY, squareX, squareY)
 			)
 		)
 	) {
@@ -317,16 +316,19 @@ board.on('click', function (event) {
 				gamePhase = MessageType.MOVE_PIECE;
 			}
 		} else {
-			if (selectedX === undefined) {
-				selectedX = hitX;
-				selectedY = hitY;
-			} else {
+			if (boardState[hitX][hitY] === color) {
 				if (hitX !== selectedX || hitY !== selectedY) {
-					group.send(movePiece(selectedX, selectedY, hitX, hitY));
-					boardState[selectedX][selectedY] = Color.NEITHER;
-					boardState[hitX][hitY] = color;
-					myTurn = false;
+					selectedX = hitX;
+					selectedY = hitY;
+				} else {
+					selectedX = undefined;
+					selectedY = undefined;
 				}
+			} else {
+				group.send(movePiece(selectedX, selectedY, hitX, hitY));
+				boardState[selectedX][selectedY] = Color.NEITHER;
+				boardState[hitX][hitY] = color;
+				myTurn = false;
 				selectedX = undefined;
 				selectedY = undefined;
 			}
