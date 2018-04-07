@@ -3,6 +3,7 @@ var board = $('#board');
 var canvas = board[0].getContext('2d');
 var userID2Tag = $('#user-id2');
 var opponentUserIDTag = $('#opponent-user-id');
+var winnerDeclaration = $('#winner');
 
 var myUserID, opponentUserID;
 var gamePhase, boardState, color, numPiecesPlaced;
@@ -73,7 +74,7 @@ function areConnectedSquares(startX, startY, endX, endY) {
 	}
 }
 
-function checkWin() {
+function isWinner() {
 	if (boardState[1][1] !== Color.NEITHER) {
 		if (boardState[0][1] === boardState[1][1] && boardState[1][1] === boardState[2][1]) {
 			//Horizontal middle line
@@ -108,6 +109,15 @@ function checkWin() {
 		}
 	}
 	return Color.NEITHER;
+}
+
+function checkWinner() {
+	let winner = isWinner();
+	if (winner === Color.WHITE) {
+		winnerDeclaration.html('White Wins!');
+	} else if (winner === Color.BLACK) {
+		winnerDeclaration.html('Blue Wins!');
+	}
 }
 
 function initializeNetworking() {
@@ -160,9 +170,10 @@ function initializeNetworking() {
 	});
 
 	group.addEventListener('message', function (event) {
+		let sentBy = event.userID;
 		let data = event.message;
 		let phase = data.phase;
-		if ((event.userID === opponentUserID && !myTurn) || color === Color.NEITHER) {
+		if ((sentBy === opponentUserID && !myTurn) || color === Color.NEITHER) {
 			//The other player tries to do something and it's their turn, or we're a spectator.
 			if (phase === Phase.PLACE_PIECE) {
 				//The other player tried to place a new piece onto the board.
@@ -175,6 +186,7 @@ function initializeNetworking() {
 						//And placing a piece in that position is legitimate.
 						boardState[x][y] = pieceColor;
 						drawBoard();
+						checkWinner();
 						if (numPiecesPlaced === MAX_PIECES) {
 							gamePhase = Phase.MOVE_PIECE;
 						}
@@ -198,11 +210,22 @@ function initializeNetworking() {
 						boardState[startX][startY] = Color.NEITHER;
 						boardState[endX][endY] = pieceColor;
 						drawBoard();
+						checkWinner();
 						if (color !== Color.NEITHER) {
 							myTurn = true;
 						}
 					}
 				}
+			}
+		}
+		if (color === Color.NEITHER) {
+			//As a spectator, grab the player names from the messages exchanged.
+			let player1Tag = userID2Tag.html();
+			let player2Tag = opponentUserIDTag.html();
+			if (player1Tag === '') {
+				userID2Tag.html(sentBy);
+			} else if (sentBy !== player1Tag && player2Tag === '') {
+				opponentUserIDTag.html(sentBy);
 			}
 		}
 	});
@@ -265,6 +288,7 @@ board.on('click', function (event) {
 		if (gamePhase === Phase.PLACE_PIECE) {
 			group.send(placePiece(hitX, hitY, color));
 			boardState[hitX][hitY] = color;
+			checkWinner();
 			myTurn = false;
 			numPiecesPlaced = numPiecesPlaced + 1;
 			if (numPiecesPlaced === MAX_PIECES && color === Color.BLACK) {
@@ -280,9 +304,10 @@ board.on('click', function (event) {
 					selectedY = undefined;
 				}
 			} else {
-				group.send(movePiece(selectedX, selectedY, hitX, hitY));
 				boardState[selectedX][selectedY] = Color.NEITHER;
 				boardState[hitX][hitY] = color;
+				checkWinner();
+				group.send(movePiece(selectedX, selectedY, hitX, hitY));
 				myTurn = false;
 				selectedX = undefined;
 				selectedY = undefined;
@@ -335,7 +360,7 @@ function drawBoard() {
 				}
 			}
 		}
-	}
+	} //end if boardState is defined.
 }
 
 function resizeBoard() {
