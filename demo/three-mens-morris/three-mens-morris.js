@@ -170,8 +170,10 @@ function initializeNetworking() {
 					//And it's the right time in the game.
 					let x = data.x;
 					let y = data.y;
-					if (boardState[x][y] === Color.NEITHER) {
-						boardState[x][y] = data.color;
+					let pieceColor = data.color;
+					if (validPlacement(x, y, pieceColor)) {
+						//And placing a piece in that position is legitimate.
+						boardState[x][y] = pieceColor;
 						drawBoard();
 						if (numPiecesPlaced === MAX_PIECES) {
 							gamePhase = Phase.MOVE_PIECE;
@@ -190,17 +192,14 @@ function initializeNetworking() {
 					let startY = data.startY;
 					let endX = data.endX;
 					let endY = data.endY;
-					let colorOfPiece = boardState[startX][startY];
-					if (colorOfPiece !== color && colorOfPiece !== Color.NEITHER) {
-						//They didn't try to move one of our pieces, and you can't begin a move from an empty space.
-						if (boardState[endX][endY] === Color.NEITHER) {
-							//The space the player moves their piece into must be empty to begin with.
-							boardState[startX][startY] = Color.NEITHER;
-							boardState[endX][endY] = colorOfPiece;
-							drawBoard();
-							if (color !== Color.NEITHER) {
-								myTurn = true;
-							}
+					if (validMove(startX, startY, endX, endY, false)) {
+						//And the move is a legal move.
+						let pieceColor = boardState[startX][startY];
+						boardState[startX][startY] = Color.NEITHER;
+						boardState[endX][endY] = pieceColor;
+						drawBoard();
+						if (color !== Color.NEITHER) {
+							myTurn = true;
 						}
 					}
 				}
@@ -209,50 +208,24 @@ function initializeNetworking() {
 	});
 }
 
-function drawBoard() {
-	canvas.shadowColor = undefined;
-	canvas.beginPath();
-	canvas.clearRect(-boardPadding, -boardPadding, 800, 800);
-	canvas.strokeRect(0, 0, squareSize * 2, squareSize * 2);
-	canvas.beginPath();
-	//Vertical middle line
-	canvas.moveTo(squareSize, 0);
-	canvas.lineTo(squareSize, squareSize * 2);
-	//Horizontal middle line
-	canvas.moveTo(0, squareSize);
-	canvas.lineTo(squareSize * 2, squareSize);
-	//Diagonal left-to-right line
-	canvas.moveTo(0, 0);
-	canvas.lineTo(squareSize * 2, squareSize * 2);
-	//Diagonal right-to-left line
-	canvas.moveTo(squareSize * 2, 0);
-	canvas.lineTo(0, squareSize * 2);
-	canvas.stroke();
-	if (boardState !== undefined) {
-		canvas.shadowColor = 'black';
-		for (let i = 0; i < 3; i++) {
-			for (let j = 0; j < 3; j++) {
-				let pieceColor = boardState[i][j];
-				if (pieceColor === Color.NEITHER) {
-					continue;
-				} else if (pieceColor === Color.WHITE) {
-					canvas.fillStyle = 'PaleGoldenrod';
-				} else {
-					canvas.fillStyle = '#000055';
-				}
-				canvas.beginPath();
-				canvas.arc(i * squareSize, j * squareSize, pieceRadius, 0, Math.PI * 2);
-				canvas.fill();
-				if (i === selectedX && j === selectedY) {
-					canvas.strokeStyle = 'Gold';
-					canvas.lineWidth = 4;
-					canvas.stroke();
-					canvas.strokeStyle = 'Black';
-					canvas.lineWidth = 2;
-				}
-			}
-		}
+function validPlacement(x, y, colorToPlace) {
+	return boardState[x][y] === Color.NEITHER;
+	//&& (numPiecesPlaced > 0 || color === Color.BLACK || squareX !== 1 || squareY !== 1) || //French rule
+}
+
+function validMove(startX, startY, endX, endY, isOurMove) {
+	let colorOnSquare = boardState[startX][startY];
+	let correctColor;
+	if (color === Color.NEITHER) {
+		correctColor = colorOnSquare !== Color.NEITHER;
+	} else if (isOurMove) {
+		correctColor = colorOnSquare === color;
+	} else {
+		correctColor = colorOnSquare !== color && colorOnSquare !== Color.NEITHER;
 	}
+	return correctColor &&
+		boardState[endX][endY] === Color.NEITHER &&
+		areConnectedSquares(startX, startY, endX, endY);
 }
 
 function findHitRegion(event) {
@@ -267,13 +240,9 @@ function findHitRegion(event) {
 	let distance = Math.sqrt((x - squareX * squareSize)**2 + (y - squareY * squareSize)**2);
 	if (!myTurn ||
 		distance > pieceRadius ||
-		(gamePhase === Phase.PLACE_PIECE && squareColor !== Color.NEITHER) ||
-		(numPiecesPlaced === 0 && color === Color.WHITE && squareX === 1 && squareY === 1) ||
+		(gamePhase === Phase.PLACE_PIECE && !validPlacement(squareX, squareY, color)) ||
 		(gamePhase === Phase.MOVE_PIECE && squareColor !== color &&
-			(selectedX === undefined ||
-			 squareColor !== Color.NEITHER ||
-			 !areConnectedSquares(selectedX, selectedY, squareX, squareY)
-			)
+			(selectedX === undefined || !validMove(selectedX, selectedY, squareX, squareY, true))
 		)
 	) {
 		hitX = undefined;
@@ -322,6 +291,52 @@ board.on('click', function (event) {
 		drawBoard();
 	}
 });
+
+function drawBoard() {
+	canvas.shadowColor = undefined;
+	canvas.beginPath();
+	canvas.clearRect(-boardPadding, -boardPadding, 800, 800);
+	canvas.strokeRect(0, 0, squareSize * 2, squareSize * 2);
+	canvas.beginPath();
+	//Vertical middle line
+	canvas.moveTo(squareSize, 0);
+	canvas.lineTo(squareSize, squareSize * 2);
+	//Horizontal middle line
+	canvas.moveTo(0, squareSize);
+	canvas.lineTo(squareSize * 2, squareSize);
+	//Diagonal left-to-right line
+	canvas.moveTo(0, 0);
+	canvas.lineTo(squareSize * 2, squareSize * 2);
+	//Diagonal right-to-left line
+	canvas.moveTo(squareSize * 2, 0);
+	canvas.lineTo(0, squareSize * 2);
+	canvas.stroke();
+	if (boardState !== undefined) {
+		canvas.shadowColor = 'black';
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				let pieceColor = boardState[i][j];
+				if (pieceColor === Color.NEITHER) {
+					continue;
+				} else if (pieceColor === Color.WHITE) {
+					canvas.fillStyle = 'PaleGoldenrod';
+				} else {
+					canvas.fillStyle = '#000055';
+				}
+				canvas.beginPath();
+				canvas.arc(i * squareSize, j * squareSize, pieceRadius, 0, Math.PI * 2);
+				canvas.fill();
+				if (i === selectedX && j === selectedY) {
+					canvas.strokeStyle = 'Gold';
+					canvas.lineWidth = 4;
+					canvas.stroke();
+					canvas.strokeStyle = 'Black';
+					canvas.lineWidth = 2;
+				}
+			}
+		}
+	}
+}
 
 function resizeBoard() {
 	var width = board.width();
