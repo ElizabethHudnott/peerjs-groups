@@ -291,6 +291,7 @@ board.on('mousemove', function (event) {
 });
 
 board.on('click', function (event) {
+	findHitRegion(event);
 	if (hitX !== undefined) {
 		if (gamePhase === Phase.PLACE_PIECE) {
 			group.send(placePiece(hitX, hitY, color));
