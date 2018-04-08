@@ -75,23 +75,55 @@
 					</tr>
 				</table>
 			</form>
-			<div class="d-flex justify-content-between align-items-center flex-wrap">
-				<table>
-					<tr>
-						<td><h3 id="user-id2"></h3></td>
-					</tr>
-				</table>
-				<h3 id="winner"></h3>
-				<table>
-					<tr>
-						<td><h3 id="opponent-user-id"></h3></td>
-					</tr>
-				</table>
+			<ul class="nav nav-tabs" role="tablist">
+				<li class="nav-item">
+					<a class="nav-link active" id="game-tab" data-toggle="tab" href="#game" role="tab" aria-selected="true">Board</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" id="rules-tab" data-toggle="tab" href="#rules" role="tab" aria-selected="false">Rules</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane fade show active" id="game" role="tabpanel" aria-labelledby="game-tab">
+					<div class="d-flex justify-content-between align-items-center flex-wrap">
+						<table>
+							<tr>
+								<td><h3 id="user-id2"></h3></td>
+							</tr>
+						</table>
+						<h3 id="winner"></h3>
+						<table>
+							<tr>
+								<td><h3 id="opponent-user-id"></h3></td>
+							</tr>
+						</table>
+					</div>
+					<canvas id="board">
+						This page requires HTML5 Canvas and JavaScript.
+					</canvas>
+				</div>
+				<div class="tab-pane fade p-3" id="rules" role="tabpanel" aria-labelledby="rules-tab">
+					<h2>Objective</h2>
+					<p>To get your three counters positioned in a straight line, either horizontally, vertically or diagonally.</p>
+
+					<h2>How to Play</h2>
+					<h3>First Stage</h3>
+					<ul>
+						<li>White plays first.</li>
+						<li>Players take turns to place one of their pieces into an empty position on the board.</li>
+						<li>The pieces are placed in positions where two or more lines meet.</li>
+						<li>If a player gets three in a row then they win and the game ends. Otherwise, once both players have placed three pieces on the board then the game progresses to the second stage.</li>
+					</ul>
+
+					<h3>Second Stage</h3>
+					<ul>
+						<li>Players take turns at moving one of their pieces.</li>
+						<li>A player moves their chosen piece along one of the lines marked on the board until it arrives at an adjacent position that is currently unoccupied.</li>
+						<li>A piece cannot jump over another piece nor move more than one step in a single move.</li>
+						<li>A player wins the game when they manage to arrange their three pieces to form a straight line.</li>
+					</ul>
+				</div>
 			</div>
-			<canvas id="board">
-				This page requires HTML5 Canvas and JavaScript.
-			</canvas>
-		</div>
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>

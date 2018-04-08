@@ -381,6 +381,9 @@ function resizeBoard() {
 }
 
 window.addEventListener('resize', resizeBoard);
+$('#game-tab').on('shown.bs.tab', function (event) {
+	resizeBoard();
+});
 resizeBoard();
 
 function disconnected() {
