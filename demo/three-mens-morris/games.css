@@ -1,5 +1,17 @@
+h1 {
+	text-align: center;
+}
+
 #board {
 	background-image: url("img/background.jpg");
 	padding: 0px;
 	width: 100%;
+}
+
+.game-reference {
+	font-style: italic;
+}
+
+.game-reference::before {
+	content: '\2014\2009'; /* Em Dash */
 }

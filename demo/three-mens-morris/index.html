@@ -36,7 +36,7 @@
 				</h1>
 				<hr class="my-2"/>
 				<p class="lead">
-					A Simple Roman Game originally called Terni Lapilli.
+					A simple Roman game.
 				</p>
 			</div>
 
@@ -82,19 +82,22 @@
 				<li class="nav-item">
 					<a class="nav-link" id="rules-tab" data-toggle="tab" href="#rules" role="tab" aria-selected="false">Rules</a>
 				</li>
+				<li class="nav-item">
+					<a class="nav-link" id="variants-tab" data-toggle="tab" href="#variants" role="tab" aria-selected="false">Variations</a>
+				</li>
 			</ul>
 			<div class="tab-content">
 				<div class="tab-pane fade show active" id="game" role="tabpanel" aria-labelledby="game-tab">
 					<div class="d-flex justify-content-between align-items-center flex-wrap">
 						<table>
 							<tr>
-								<td><h3 id="user-id2"></h3></td>
+								<td class="h3" id="user-id2"></td>
 							</tr>
 						</table>
-						<h3 id="winner"></h3>
+						<div class="h3" id="winner"></div>
 						<table>
 							<tr>
-								<td><h3 id="opponent-user-id"></h3></td>
+								<td class="h3" id="opponent-user-id"></td>
 							</tr>
 						</table>
 					</div>
@@ -103,11 +106,12 @@
 					</canvas>
 				</div>
 				<div class="tab-pane fade p-3" id="rules" role="tabpanel" aria-labelledby="rules-tab">
-					<h2>Objective</h2>
+					<h1>Playing Three Men's Morris</h1>
+					<h2>Aim</h2>
 					<p>To get your three counters positioned in a straight line, either horizontally, vertically or diagonally.</p>
 
 					<h2>How to Play</h2>
-					<h3>First Stage</h3>
+					<h3>First Stage (Placing Pieces)</h3>
 					<ul>
 						<li>White plays first.</li>
 						<li>Players take turns to place one of their pieces into an empty position on the board.</li>
@@ -115,13 +119,102 @@
 						<li>If a player gets three in a row then they win and the game ends. Otherwise, once both players have placed three pieces on the board then the game progresses to the second stage.</li>
 					</ul>
 
-					<h3>Second Stage</h3>
+					<h3>Second Stage (Moving Pieces)</h3>
 					<ul>
 						<li>Players take turns at moving one of their pieces.</li>
 						<li>A player moves their chosen piece along one of the lines marked on the board until it arrives at an adjacent position that is currently unoccupied.</li>
 						<li>A piece cannot jump over another piece nor move more than one step in a single move.</li>
 						<li>A player wins the game when they manage to arrange their three pieces to form a straight line.</li>
 					</ul>
+				</div>
+				<div class="tab-pane fade p-3" id="variants" role="tabpanel" aria-labelledby="variants-tab">
+					<h1>Variations on Three Men's Morris</h1>
+					<h2>Alternative Names</h2>
+					<p>The basic game has several different names. The rules are identical in every case.</p>
+					<ul>
+						<li>Luk Tsut K'i (Chinese for "Six Man Chess")</li>
+						<li>Smaller Merels (Old French)</li>
+						<li>Tapatan (Philippines)</li>
+						<li>Terni Lapilli (Latin for "Three Small Stones")</li>
+						<li>Three Men's Morris</li>
+					</ul>
+
+					<h2>Different Shaped Boards</h2>
+					<h3>Topologically Equivalent</h3>
+					<h4>Circular</h4>
+					<p class="game-reference"><a href="https://sites.google.com/site/boardandpieces/list-of-games/circular-three-mens-morris" target="_blank">Circular Three Men's Morris&nbsp;/ Rota</a></p>
+					<h4>Octagonal</h4>
+					<p class="game-reference"><a href="https://sites.google.com/site/boardandpieces/list-of-games/shisima" target="_blank">Shisima</a></p>
+					<h3>Without a Centre Position</h3>
+					<h4>Triangular</h4>
+					<p class="game-reference"><a href="https://sites.google.com/site/boardandpieces/list-of-games/tsoro-yematatu" target="_blank">Tsoro Yematatu</a></p>
+
+					<h2>Different Rules</h2>
+					<h3>More Pieces</h3>
+					<h4>Four Pieces Per Player</h4>
+					<p>
+						During the movement stage there is only one empty position to move pieces into.<br/>
+						<span class="game-reference"><a href="https://sites.google.com/site/boardandpieces/list-of-games/achi" target="_blank">Achi</a></span>
+					</p>
+					<h4>Five Pieces Per Player</h4>
+					<p>
+						The board gets filled up and there is no movement stage. Gameplay is identical to Noughts and Crosses.<br/>
+						<span class="game-reference"><a href="https://www.wikihow.com/Play-Tic-Tac-Toe" target="_blank">Noughts and Crosses&nbsp;/ Tic-Tac-Toe</a></span>
+					</p>
+
+					<h3>Restricted Placement</h3>
+					<h4>French Rule</h4>
+					<p>
+						In the basic Three Men's Morris, White can play a certain strategy which guarantees Blue will be unable to stop White from winning. If White is banned from placing their first counter in the centre position then Blue has a chance of drawing even against an expert player.
+					</p>
+					<h4>Not Using the Centre Position</h4>
+					<p>
+						Neither player can place a piece in the centre position during the first stage of the game.<br/>
+						<span class="game-reference"><a href="http://mathcentral.uregina.ca/rr/database/rr.09.00/treptau1/game11.html" target="_blank">Picaria</a></span>
+					</p>
+					<h4>Fixed Placement</h4>
+					<p>
+						White's pieces are always placed on a1, b1 and c1, and Blue's pieces are always placed on a3, b3 and c3. a1&#8209;b1&#8209;c3 is no longer a winning line for White and a3&#8209;b3&#8209;c3 isn't a winning line for Blue.<br/>
+						<span class="game-reference"><a href="https://sites.google.com/site/boardandpieces/list-of-games/shisima" target="_blank">Shisima</a>, <a href="https://sites.google.com/site/boardandpieces/list-of-games/tant-fant" target="_blank">Tant Fant</a></span>
+					</p>
+
+					<h3>Restricted Movement</h3>
+					<h4>Limited Time in the Centre Position</h4>
+					<p>
+						Players are not allowed to keep their piece in the centre position for more than two consecutive turns.<br/>
+						<span class="game-reference"><a href="https://sites.google.com/site/boardandpieces/list-of-games/circular-three-mens-morris" target="_blank">Circular Three Men's Morris&nbsp;/ Rota</a></span>
+					</p>
+
+					<h3>Freer Movement</h3>
+					<h4>Permitting Moves Along Any Diagonal</h4>
+					<p>
+						This allows, for example, a move from b1 to a2, which isn't a line on the standard board.<br/>
+						<span class="game-reference"><a href="http://mathcentral.uregina.ca/rr/database/rr.09.00/treptau1/game11.html" target="_blank">9-Point Picaria</a></span>
+					</p>
+					<h4>Movement Permitted to Any Empty Space</h4>
+					<p class="game-reference"><a href="https://archive.org/stream/AHistoryOfChess/A_History_of_Chess#page/n639" target="_blank">Nine Holes</a></p>
+
+					<h3>Different Movement</h3>
+					<p>One variant disallows diagonal moves but grants the pieces the ability to jump over another one.</p>
+
+					<h3>More Positions, Freer Movement and More Winning Lines</h3>
+					<h4>Extra Positions on the Diagonals</h4>
+					<p>
+						This version adds four extra positions, one between b1 and a2, and also between a2 and b3, b3 and c2, and c2 and b1.<br/>
+						<span class="game-reference"><a href="http://mathcentral.uregina.ca/rr/database/rr.09.00/treptau1/game11.html" target="_blank">13-Point Picaria</a></span>
+					</p>
+					<h4>Unusual Boards</h4>
+
+					<h4>Bigger Boards</h4>
+					<p>The winning objective is different in these games. Players have to capture their opponent's pieces by making as many lines of three as possible. The best strategies are also different. Some variants also allow moving pieces during the placement phase.</p>
+					<h5>Five Men's Morris and Six Men's Morris</h5>
+					<img src="https://upload.wikimedia.org/wikipedia/commons/3/3f/Six_Men%27s_Morris.svg" width="200" height="200" alt="Six Men's Morris board"/>
+					<h5>Seven Men's Morris</h5>
+					<img src="img/seven-mens-morris-board.svg" width="200" height="200" alt="Seven Men's Morris board"/>
+					<h5>Nine Men's Morris and Ten Men's Morris</h5>
+					<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Nine_Men%27s_Morris_board_with_coordinates%2C_modified.png/240px-Nine_Men%27s_Morris_board_with_coordinates%2C_modified.png" width="200" height="200" alt="Nine Men's Morris board"/>
+					<h5>Eleven Men's Morris and Twelve Men's Morris</h5>
+					<img src="https://upload.wikimedia.org/wikipedia/commons/9/90/Twelve_Men%27s_Morris_board.svg" width="200" height="200" alt="Twelve Men's Morris board"/>
 				</div>
 			</div>
 

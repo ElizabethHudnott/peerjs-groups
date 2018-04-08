@@ -1,4 +1,5 @@
 "user strict"
+var gameTab = $('#game');
 var board = $('#board');
 var canvas = board[0].getContext('2d');
 var userID2Tag = $('#user-id2');
@@ -378,6 +379,9 @@ function resizeBoard() {
 	canvas.shadowOffsetY = 35;
 	canvas.shadowBlur = 50;
 	drawBoard();
+
+	let tabHeight = gameTab.height();
+	gameTab.parent().children().css('min-height', tabHeight);
 }
 
 window.addEventListener('resize', resizeBoard);
