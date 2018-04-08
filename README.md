@@ -18,14 +18,14 @@ An example of the last principle is that you are able to implement whatever logi
 * Before a peer can start sending data to another peer, the peers need a way of finding each other and negotiating the creation of a peer-to-peer connection. These are called *discovery and signalling* respectively. WebRTC doesn't come with built-in discovery or signalling protocol implementations. These usually require a server, but only to set up the initial connection. Once the connection is established then the signalling phase is finished. The server doesn't receive any of the actual messages of the conversation because it's all sent peer-to-peer.
 * Peer.js Groups uses a JavaScript library called Peer.js, which provides the signalling protocol. (SIP is another popular alternative.)
 * Peer.js enables *one peer* to instantiate a *point-to-point connection* with *one other peer,* provided that it knows the other peer's *peer ID* in advance. The Peer.js documentation strongly recommends allowing Peer.js to assign each peer an ID randomly (although it does also let JavaScript programmers go against that advice and choose their own peer IDs instead).
-* Peer.js Groups uses Peer.js to create a "three-way" (or "four way"...) connection between peers. A "three-way" connection between peers, say A, B and C, is actually implemented as 3 two-way connections (A<->B, A<->C, B<->C). These details are all handled automatically, behind the scenes. From the perspective of someone using Peer.js Groups it works like a group chat (except the messages are JavaScript objects).
+* Peer.js Groups uses Peer.js to create a "three-way" (or "four way"...) connection between peers. A "three-way" connection between peers, say A, B and C, is actually implemented as 3 two-way connections (A<->B, A<->C, B<->C). These details are all handled automatically behind the scenes. From the perspective of someone using Peer.js Groups it works like a group chat (except the messages are JavaScript objects).
 
 ## Software Required
 * A modern web browser with support for WebRTC.
 * The [Peer.js client-side](https://github.com/peers/peerjs) library.
 * Peer.js Groups (also client-side).
 * Access to a server running the [Peer.js server-side](https://github.com/peers/peerjs-server) code (Node.js). The authors used to provide free access to their own server in the cloud but the website is now down (as of April 2018).
-* If you have two peers trying to connect to each other and both are behind a separate NATs then you may encounter connection problems, in which case you'll need access to a TURN server.
+* If you have two peers trying to connect to each other and both are behind separate NATs then you may encounter connection problems, in which case you'll need access to a TURN server.
 
 A TURN server enables a peer A to send an encrypted message to a peer B by first sending the message to the TURN server, and then the TURN server sends it B. The TURN server cannot decrypt the content of the messages. However, many people behind NATs can still communicate with each other without an intermediate TURN server by using something called STUN, which is an extra step at the connection set-up stage, which Peer.js handles automatically.
 
