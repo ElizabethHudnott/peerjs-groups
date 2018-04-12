@@ -1,4 +1,3 @@
-"use strict";
 /* TODO
  *	* Add function to get admin's user ID.
  *	* Buffer messages when not connected to any other peers.
@@ -31,6 +30,7 @@ const ESCAPE_MAP = {
 	@param {(string|undefined)} input The text to make safe.
 */
 function escapeHTML(input) {
+	'use strict';
 	if (input !== undefined) {
 		return String(input).replace(/[&<>"']/g, function (match) {
 			return ESCAPE_MAP[match];
@@ -236,7 +236,7 @@ class PeerGroup extends EventTarget {
 			return {
 				type: type,
 				data: data
-			}
+			};
 		}
 
 		/**	Creates a PeerGroupEvent. */
@@ -307,7 +307,7 @@ class PeerGroup extends EventTarget {
 			for (const connection of connections.values()) {
 				connection.send(message);
 			}
-		};
+		}
 
 		/**	Sends this peer's user ID to another peer.
 			@param {DataConnection} connection A connection to the peer that should
@@ -346,7 +346,7 @@ class PeerGroup extends EventTarget {
 				peersToUsers.set(this.peer, remoteUserID);
 				usersToPeers.set(escapedUserID, this.peer);
 				tryingToConnect.delete(this.peer);
-				var event = createEvent('userpresent', {
+				event = createEvent('userpresent', {
 					sessionID: sessionID,
 					userID: escapedUserID,
 					isPrivate: false
@@ -446,10 +446,10 @@ class PeerGroup extends EventTarget {
 		/**	Sends an error message to another peer and then closes the connection.
 			@param {DataConnection} connection The connection to the peer to disconnect from.
 			@param {ErrorType} reason A code stating the reason for terminating the connection.
-			@param {string} message A string explaining the reason for terminating the connection.
+			@param {string} errorMessage A string explaining the reason for terminating the connection.
 		*/
-		function rejectConnection(connection, reason, message) {
-			var message = makeMessage(MsgType.CONNECT_ERROR, message);
+		function rejectConnection(connection, reason, errorMessage) {
+			var message = makeMessage(MsgType.CONNECT_ERROR, errorMessage);
 			message.errorType = reason;
 			connection.send(message);
 			setTimeout(function () {
@@ -618,7 +618,7 @@ class PeerGroup extends EventTarget {
 					connected(sessionID);
 				});
 			} // end if sessionID is defined.
-		} // end of connect method.
+		}; // end of connect method.
 
 		/**	Disconnects from the peer group (if connected to one) or cancels any pending
 			application to join a peer group.
@@ -656,7 +656,7 @@ class PeerGroup extends EventTarget {
 				isPrivate: false
 			});
 			me.dispatchEvent(event);
-		}
+		};
 
 		/**	Prevents a peer with a given user ID from joining the peer group or removes
 			an existing member from the peer group.
@@ -680,7 +680,7 @@ class PeerGroup extends EventTarget {
 					`You've been banned from the session "${sessionID}".`
 				);
 			}
-		}
+		};
 
 		/**	Sends a message to all members of the peer group.
 			@param {any} data The data to send.
@@ -690,7 +690,7 @@ class PeerGroup extends EventTarget {
 				MsgType.DATA,
 				data
 			));
-		}
+		};
 
 		/**	Sends a message to a particular user.
 			@param {string} destUser The user ID to send the data to.
@@ -711,7 +711,7 @@ class PeerGroup extends EventTarget {
 					data
 				));
 			}
-		}
+		};
 
 		/**	The set of all user IDs belonging to peers currently in the peer group.
 		*/
@@ -732,7 +732,7 @@ class PeerGroup extends EventTarget {
 				hasJoinRequestListenerAdded = true;
 			}
 			PeerGroup.prototype.addEventListener.call(this, type, listener, options);
-		}
+		};
 
 	} // End of PeerGroup constructor.
 
