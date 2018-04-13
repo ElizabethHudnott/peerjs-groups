@@ -1,0 +1,38 @@
+{
+	"name": "peerjs-groups",
+	"version": "1.0.0",
+	"description": "A thin abstraction layer over Peer.js (a client library) that allows peers to easily find and communicate with other peers that share a common group ID tag.",
+	"directories": {
+		"example": "demo"
+	},
+	"dependencies": {
+		"peerjs": ">=0.3.14"
+	},
+	"devDependencies": {
+		"grunt": "^1.0.2",
+		"grunt-contrib-concat": "^1.0.1",
+		"grunt-contrib-uglify-es": "github:gruntjs/grunt-contrib-uglify#harmony",
+		"grunt-contrib-jshint": "^1.1.0",
+		"grunt-contrib-watch": "^1.0.0",
+		"grunt-jsdoc": "^2.2.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ElizabethHudnott/peerjs-groups.git"
+	},
+	"keywords": [
+		"PeerJS",
+		"WebRTC",
+		"peer-to-peer",
+		"P2P",
+		"group",
+		"multiway",
+		"n-way",
+		"three way"
+	],
+	"author": "Elizabeth Hudnott",
+	"bugs": {
+		"url": "https://github.com/ElizabethHudnott/peerjs-groups/issues"
+	},
+	"homepage": "https://github.com/ElizabethHudnott/peerjs-groups#readme"
+}
