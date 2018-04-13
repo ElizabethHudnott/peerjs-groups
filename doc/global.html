@@ -98,6 +98,194 @@
 
         
             
+<h4 class="name" id="CONNECT_ERROR"><span class="type-signature"></span>CONNECT_ERROR<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Sent when a peer is forcefully denied membership of the peer group.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line206">line 206</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="DATA"><span class="type-signature"></span>DATA<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Data message. The meaning of the message is defined by your application.
+				The data is forwarded to the application via a <a href="PeerGroup.html#~event:message">PeerGroup~event:message</a> event.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line194">line 194</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="DUPLICATE_USER_ID"><span class="type-signature"></span>DUPLICATE_USER_ID<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    A peer attempted to join a peer group with the same user ID as another
+				peer that already belongs to the peer group.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line221">line 221</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="ESCAPE_MAP"><span class="type-signature">(constant) </span>ESCAPE_MAP<span class="type-signature"></span></h4>
 
 
@@ -144,6 +332,257 @@
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
         <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="IDENTIFY"><span class="type-signature"></span>IDENTIFY<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    A message informing the receiving peer of the sending peer's user ID.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line196">line 196</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="PEER_LIST"><span class="type-signature"></span>PEER_LIST<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    A message informing the receiving peer of the peer IDs of the other peers
+				that belong to the peer group.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line200">line 200</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="PRIVATE_MSG"><span class="type-signature"></span>PRIVATE_MSG<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Similar to a data message but sent to a single peer rather than to all
+				peers belonging to the peer group.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line204">line 204</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="PROHIBITED"><span class="type-signature"></span>PROHIBITED<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    A peer was prevented from joining the peer group because of a human decision
+				to reject it.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="peerjs-groups.js.html">peerjs-groups.js</a>, <a href="peerjs-groups.js.html#line225">line 225</a>
     </li></ul></dd>
     
 
@@ -320,13 +759,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PeerGroup.html">PeerGroup</a></li><li><a href="PeerGroupEvent.html">PeerGroupEvent</a></li></ul><h3>Events</h3><ul><li><a href="PeerGroup.html#~event:connected">connected</a></li><li><a href="PeerGroup.html#~event:ejected">ejected</a></li><li><a href="PeerGroup.html#~event:joined">joined</a></li><li><a href="PeerGroup.html#~event:joinrequest">joinrequest</a></li><li><a href="PeerGroup.html#~event:message">message</a></li><li><a href="PeerGroup.html#~event:userleft">userleft</a></li><li><a href="PeerGroup.html#~event:userpresent">userpresent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ESCAPE_MAP">ESCAPE_MAP</a></li><li><a href="global.html#escapeHTML">escapeHTML</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PeerGroup.html">PeerGroup</a></li><li><a href="PeerGroupEvent.html">PeerGroupEvent</a></li></ul><h3>Events</h3><ul><li><a href="PeerGroup.html#~event:connected">connected</a></li><li><a href="PeerGroup.html#~event:ejected">ejected</a></li><li><a href="PeerGroup.html#~event:joined">joined</a></li><li><a href="PeerGroup.html#~event:joinrequest">joinrequest</a></li><li><a href="PeerGroup.html#~event:message">message</a></li><li><a href="PeerGroup.html#~event:userleft">userleft</a></li><li><a href="PeerGroup.html#~event:userpresent">userpresent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CONNECT_ERROR">CONNECT_ERROR</a></li><li><a href="global.html#DATA">DATA</a></li><li><a href="global.html#DUPLICATE_USER_ID">DUPLICATE_USER_ID</a></li><li><a href="global.html#ESCAPE_MAP">ESCAPE_MAP</a></li><li><a href="global.html#escapeHTML">escapeHTML</a></li><li><a href="global.html#IDENTIFY">IDENTIFY</a></li><li><a href="global.html#PEER_LIST">PEER_LIST</a></li><li><a href="global.html#PRIVATE_MSG">PRIVATE_MSG</a></li><li><a href="global.html#PROHIBITED">PROHIBITED</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 13 2018 15:10:39 GMT+0100 (GMT Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 13 2018 16:56:42 GMT+0100 (GMT Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

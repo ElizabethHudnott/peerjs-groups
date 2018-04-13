@@ -17,13 +17,13 @@
 	scripting attacks) and their corresponding escape sequences, i.e. HTML character entities.
 	@readonly
 */
-const ESCAPE_MAP = {
+const ESCAPE_MAP = Object.freeze({
 	'&': '&amp;',
 	'<': '&lt;',
 	'>': '&gt;',
 	'"': '&quot;',
 	"'": '&#39;'
-};
+});
 
 /**	Escapes a string so that any HTML code contained within it is converted into plain
 	text.
@@ -187,7 +187,7 @@ class PeerGroup extends EventTarget {
 		/**	Describes the type of content contained in a message sent between peers.
 			@enum
 		*/
-		const MsgType = {
+		const MsgType = Object.freeze({
 			/**	Data message. The meaning of the message is defined by your application.
 				The data is forwarded to the application via a {@link PeerGroup~event:message} event.
 			*/
@@ -204,7 +204,7 @@ class PeerGroup extends EventTarget {
 			PRIVATE_MSG: 4,
 			/**	Sent when a peer is forcefully denied membership of the peer group. */
 			CONNECT_ERROR: 5,
-		};
+		});
 
 		/**	@typedef Message
 			@description Members of this type are sent from one peer to another.
@@ -214,7 +214,7 @@ class PeerGroup extends EventTarget {
 		/**	Describes the kinds of errors that can occur which need to be sent from one peer to another.
 			@enum
 		*/
-		const ErrorType = {
+		const ErrorType = Object.freeze({
 			/**	A peer attempted to join a peer group with the same user ID as another
 				peer that already belongs to the peer group.
 			*/
@@ -223,7 +223,7 @@ class PeerGroup extends EventTarget {
 				to reject it.
 			*/
 			PROHIBITED: 2
-		};
+		});
 
 		/**	Constructs a Message.
 			N.B. Do not convert this to a class. Peer.js doesn't support sending class instances.

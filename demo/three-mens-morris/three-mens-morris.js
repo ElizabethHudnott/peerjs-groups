@@ -16,17 +16,17 @@ var group;
 
 const MAX_PIECES = 3; // 4 in some variants, 5 for Noughts and Crosses / Tic-Tac-Toe.
 
-const Color = {
+const Color = Object.freeze({
 	WHITE: 'W',
 	BLACK: 'B',
 	NEITHER: '-',
-}
+});
 
-const Phase = {
+const Phase = Object.freeze({
 	WAITING_TO_PLAY: 1,
 	PLACE_PIECE: 2,
 	MOVE_PIECE: 3,
-}
+});
 
 function placePiece(x, y, colorToPlace) {
 	return {
