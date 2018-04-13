@@ -17,7 +17,7 @@ An example of the last principle is that you are able to implement whatever logi
 * WebRTC is an API built into modern browsers that allows encrypted, peer-to-peer communication directly between browsers.
 * Before a peer can start sending data to another peer, the peers need a way of finding each other and negotiating the creation of a peer-to-peer connection. These are called *discovery and signalling* respectively. WebRTC doesn't come with built-in discovery or signalling protocol implementations. These usually require a server, but only to set up the initial connection. Once the connection is established then the signalling phase is finished. The server doesn't receive any of the actual messages of the conversation because it's all sent peer-to-peer.
 * Peer.js Groups uses a JavaScript library called Peer.js, which provides the signalling protocol. (SIP is another popular alternative.)
-* Peer.js enables *one peer* to instantiate a *point-to-point connection* with *one other peer,* provided that it knows the other peer's *peer ID* in advance. The Peer.js documentation strongly recommends allowing Peer.js to assign each peer an ID randomly (although it does also let programmers go against that advice and choose their own peer IDs instead).
+* Peer.js enables *one peer* to instantiate a *point-to-point connection* with *one other peer,* provided that it knows the other peer's *peer ID* in advance. The Peer.js documentation strongly recommends allowing Peer.js to assign each peer an ID randomly (although it does let programmers go against the advice and choose their own peer IDs instead).
 * Peer.js Groups uses Peer.js to create a "three-way" (or "four way"...) connection between peers. A "three-way" connection between peers, say A, B and C, is actually implemented as 3 two-way connections (A<->B, A<->C, B<->C). These details are all handled automatically behind the scenes. From the perspective of someone using Peer.js Groups it works like a group chat (except the messages are JavaScript objects).
 
 ## Software Required
@@ -38,7 +38,7 @@ npm install peer
 3) Start the server.
 ````
 cd node_modules/peer/bin
-peerjs -p 9000
+./peerjs -p 9000
 ````
 
 To communicate with peers across the internet (rather than just your local network) you'll also need to configure port forwarding on your router and you'll probably want to configure a domain name too. Running the server in the cloud using a service like [Heroku](https://www.heroku.com/deploy/?template=https://github.com/peers/peerjs-server) is probably a better a option.
