@@ -8,7 +8,7 @@
  *	* Handle peer getting disconnected from peer server.
  *  * Handle when the peer named after the session goes down.
  *	* Mask sessionID with one time password.
- *	* Verify users' identities somehow. 
+ *	* Verify users' identities somehow.
  *  * Anonymize connection labels.
  *	* Add voice and video.
  */
@@ -572,6 +572,22 @@ class PeerGroup extends EventTarget {
 					}
 				});
 
+				peer.on('open', function () {
+					firstConnection = peer.connect(sessionID, {
+						label: userID,
+						reliable: true
+					});
+
+					firstConnection.on('data', dataReceived);
+					firstConnection.on('error', onError);
+					firstConnection.on('close', connectionClosed);
+
+					firstConnection.on('open', function () {
+						connections.set(sessionID, this);
+						connected(sessionID);
+					});
+				});
+
 				peer.on('connection', function (connection) {
 					connection.on('open', function () {
 						if (connection.metadata.sessionID === sessionID) {
@@ -606,19 +622,6 @@ class PeerGroup extends EventTarget {
 					});
 				});
 
-				firstConnection = peer.connect(sessionID, {
-					label: userID,
-					reliable: true
-				});
-
-				firstConnection.on('data', dataReceived);
-				firstConnection.on('error', onError);
-				firstConnection.on('close', connectionClosed);
-
-				firstConnection.on('open', function () {
-					connections.set(sessionID, this);
-					connected(sessionID);
-				});
 			} // end if sessionID is defined.
 		}; // end of connect method.
 

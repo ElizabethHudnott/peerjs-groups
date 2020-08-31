@@ -24,7 +24,7 @@ An example of the last principle is that you are able to implement whatever logi
 * A modern web browser with support for WebRTC.
 * The [Peer.js client-side](https://github.com/peers/peerjs) library.
 * Peer.js Groups (also client-side).
-* Access to a server running the [Peer.js server-side](https://github.com/peers/peerjs-server) code (Node.js). The authors used to provide free access to their own server in the cloud but the website is now down (as of April 2018).
+* A server running the [Peer.js server-side](https://github.com/peers/peerjs-server) code such [peerjs.com](https://peerjs.com/peerserver.html).
 * If you have two peers trying to connect to each other and both are behind separate NATs then you may encounter connection problems, in which case you'll need access to a TURN server.
 
 A TURN server enables a peer A to send an encrypted message to a peer B by first sending the message to the TURN server, and then the TURN server sends it B. The TURN server cannot decrypt the content of the messages. However, many people behind NATs can still communicate with each other without an intermediate TURN server by using something called STUN, which is an extra step at the connection set-up stage, which Peer.js handles automatically.
@@ -41,14 +41,12 @@ cd node_modules/peer/bin
 ./peerjs -p 9000
 ````
 
-To communicate with peers across the internet (rather than just your local network) you'll also need to configure port forwarding on your router and you'll probably want to configure a domain name too. Running the server in the cloud using a service like [Heroku](https://www.heroku.com/deploy/?template=https://github.com/peers/peerjs-server) is probably a better a option.
-
 ## Client-Side Code
 See the ["Hello World!" demo](https://github.com/ElizabethHudnott/peerjs-groups/tree/master/demo/hello-world) for a complete example.
 
 1) Link to the JavaScript files from your HTML.
 ````
-<script src="peer.min.js"></script>
+<script src="peerjs.min.js"></script>
 <script src="peerjs-groups.js"></script>
 ````
 

@@ -9,9 +9,7 @@ function addItem(item) {
 var userID = "User" + Math.floor(Math.random() * 10000);
 
 //Create the object we use to access all Peer.js Groups functionality.
-var group = new PeerGroup(function (error) {
-	addItem(error);
-}, {host: 'localhost'});
+var group = new PeerGroup(addItem, {host: 'localhost'});
 
 //When we receive a message, add it to the document.
 group.addEventListener('message', function (event) {

@@ -43,9 +43,11 @@
 
 
     <section>
-        <article><h1>Peer.js Groups</h1><p>Using Peer.js Groups, a web browser on one machine can send encrypted data to (and receive encryped data from) other web browsers spread across the internet without needing to send the data via an intermediate server (in most cases). The data sent and received can be any JavaScript objects (or any other JavaScript values such as strings).</p>
+        <article><h1>Peer.js Groups</h1>
+<p>Using Peer.js Groups, a web browser on one machine can send encrypted data to (and receive encryped data from) other web browsers spread across the internet without needing to send the data via an intermediate server (in most cases). The data sent and received can be any JavaScript objects (or any other JavaScript values such as strings).</p>
 <p>Peer.js Groups is a thin layer of abstraction over the <a href="https://github.com/peers/peerjs">Peer.js</a> library that allows peers to easily find and communicate with other peers that share an interest in a common group ID tag (e.g. a chat room name or a gaming session name).</p>
-<h2>How Peeer.js Groups Differs from <a href="https://easyrtc.com">EasyRTC</a>, <a href="https://github.com/andyet/SimpleWebRTC">SimpleRTC</a>, <a href="https://github.com/muaz-khan/RTCMultiConnection">RTCMultiConnection</a>, etc.</h2><p>Great projects though the others are, I decided to roll my own. This was initially primarily for the benefit of my own learning. But as this project develops I'd like it to stick to a few principles that I've developed, and these principles perhaps distinguish this project from the competition (aside from this project being in the very early experimental stages!).</p>
+<h2>How Peeer.js Groups Differs from <a href="https://easyrtc.com">EasyRTC</a>, <a href="https://github.com/andyet/SimpleWebRTC">SimpleRTC</a>, <a href="https://github.com/muaz-khan/RTCMultiConnection">RTCMultiConnection</a>, etc.</h2>
+<p>Great projects though the others are, I decided to roll my own. This was initially primarily for the benefit of my own learning. But as this project develops I'd like it to stick to a few principles that I've developed, and these principles perhaps distinguish this project from the competition (aside from this project being in the very early experimental stages!).</p>
 <ol>
 <li>A focus on data connections as the first priority rather than audio or video.</li>
 <li>Minimalistic - no extra bells or whistles.</li>
@@ -53,34 +55,53 @@
 <li>Minimal assumptions about what you want to do with the library.</li>
 </ol>
 <p>An example of the last principle is that you are able to implement whatever logic you wish in response to a <code>joinrequest</code> event.</p>
-<h2>How it Works</h2><ul>
+<h2>How it Works</h2>
+<ul>
 <li>WebRTC is an API built into modern browsers that allows encrypted, peer-to-peer communication directly between browsers.</li>
 <li>Before a peer can start sending data to another peer, the peers need a way of finding each other and negotiating the creation of a peer-to-peer connection. These are called <em>discovery and signalling</em> respectively. WebRTC doesn't come with built-in discovery or signalling protocol implementations. These usually require a server, but only to set up the initial connection. Once the connection is established then the signalling phase is finished. The server doesn't receive any of the actual messages of the conversation because it's all sent peer-to-peer.</li>
 <li>Peer.js Groups uses a JavaScript library called Peer.js, which provides the signalling protocol. (SIP is another popular alternative.)</li>
 <li>Peer.js enables <em>one peer</em> to instantiate a <em>point-to-point connection</em> with <em>one other peer,</em> provided that it knows the other peer's <em>peer ID</em> in advance. The Peer.js documentation strongly recommends allowing Peer.js to assign each peer an ID randomly (although it does let programmers go against the advice and choose their own peer IDs instead).</li>
-<li>Peer.js Groups uses Peer.js to create a &quot;three-way&quot; (or &quot;four way&quot;...) connection between peers. A &quot;three-way&quot; connection between peers, say A, B and C, is actually implemented as 3 two-way connections (A<->B, A<->C, B<->C). These details are all handled automatically behind the scenes. From the perspective of someone using Peer.js Groups it works like a group chat (except the messages are JavaScript objects).</li>
+<li>Peer.js Groups uses Peer.js to create a &quot;three-way&quot; (or &quot;four way&quot;...) connection between peers. A &quot;three-way&quot; connection between peers, say A, B and C, is actually implemented as 3 two-way connections (A&lt;-&gt;B, A&lt;-&gt;C, B&lt;-&gt;C). These details are all handled automatically behind the scenes. From the perspective of someone using Peer.js Groups it works like a group chat (except the messages are JavaScript objects).</li>
 </ul>
-<h2>Software Required</h2><ul>
+<h2>Software Required</h2>
+<ul>
 <li>A modern web browser with support for WebRTC.</li>
 <li>The <a href="https://github.com/peers/peerjs">Peer.js client-side</a> library.</li>
 <li>Peer.js Groups (also client-side).</li>
-<li>Access to a server running the <a href="https://github.com/peers/peerjs-server">Peer.js server-side</a> code (Node.js). The authors used to provide free access to their own server in the cloud but the website is now down (as of April 2018).</li>
+<li>A server running the <a href="https://github.com/peers/peerjs-server">Peer.js server-side</a> code such <a href="https://peerjs.com/peerserver.html">peerjs.com</a>.</li>
 <li>If you have two peers trying to connect to each other and both are behind separate NATs then you may encounter connection problems, in which case you'll need access to a TURN server.</li>
 </ul>
 <p>A TURN server enables a peer A to send an encrypted message to a peer B by first sending the message to the TURN server, and then the TURN server sends it B. The TURN server cannot decrypt the content of the messages. However, many people behind NATs can still communicate with each other without an intermediate TURN server by using something called STUN, which is an extra step at the connection set-up stage, which Peer.js handles automatically.</p>
-<h2>Server Installation</h2><p>1) Install <a href="https://nodejs.org">Node.js</a>.
-2) Install the <a href="https://github.com/peers/peerjs-server">Peer.js server</a> using the Terminal/Command Prompt.</p>
-<pre class="prettyprint source"><code>npm install peer</code></pre><p>3) Start the server.</p>
+<h2>Server Installation</h2>
+<ol>
+<li>Install <a href="https://nodejs.org">Node.js</a>.</li>
+<li>Install the <a href="https://github.com/peers/peerjs-server">Peer.js server</a> using the Terminal/Command Prompt.</li>
+</ol>
+<pre class="prettyprint source"><code>npm install peer
+</code></pre>
+<ol start="3">
+<li>Start the server.</li>
+</ol>
 <pre class="prettyprint source"><code>cd node_modules/peer/bin
-./peerjs -p 9000</code></pre><p>To communicate with peers across the internet (rather than just your local network) you'll also need to configure port forwarding on your router and you'll probably want to configure a domain name too. Running the server in the cloud using a service like <a href="https://www.heroku.com/deploy/?template=https://github.com/peers/peerjs-server">Heroku</a> is probably a better a option.</p>
-<h2>Client-Side Code</h2><p>See the <a href="https://github.com/ElizabethHudnott/peerjs-groups/tree/master/demo/hello-world">&quot;Hello World!&quot; demo</a> for a complete example.</p>
-<p>1) Link to the JavaScript files from your HTML.</p>
-<pre class="prettyprint source"><code>&lt;script src=&quot;peer.min.js&quot;>&lt;/script>
-&lt;script src=&quot;peerjs-groups.js&quot;>&lt;/script></code></pre><p>2) Create a <code>PeerGroup</code> object.</p>
+./peerjs -p 9000
+</code></pre>
+<h2>Client-Side Code</h2>
+<p>See the <a href="https://github.com/ElizabethHudnott/peerjs-groups/tree/master/demo/hello-world">&quot;Hello World!&quot; demo</a> for a complete example.</p>
+<ol>
+<li>Link to the JavaScript files from your HTML.</li>
+</ol>
+<pre class="prettyprint source"><code>&lt;script src=&quot;peerjs.min.js&quot;>&lt;/script>
+&lt;script src=&quot;peerjs-groups.js&quot;>&lt;/script>
+</code></pre>
+<ol start="2">
+<li>Create a <code>PeerGroup</code> object.</li>
+</ol>
 <pre class="prettyprint source lang-javascript"><code>var group = new PeerGroup(function (error) {
   console.error(error);
   //TODO Put some better error handling code in here...
- }, {host: 'localhost'});</code></pre><p>To be continued...</p></article>
+ }, {host: 'localhost'});
+</code></pre>
+<p>To be continued...</p></article>
     </section>
 
 
@@ -97,7 +118,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 13 2018 16:56:42 GMT+0100 (GMT Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 31 2020 21:47:56 GMT+0100 (British Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>
